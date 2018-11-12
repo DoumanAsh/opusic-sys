@@ -2,6 +2,7 @@
 name = "opusic-sys"
 version = "0.1.0"
 authors = ["Douman <douman@gmx.se>"]
+description = "Bindings to libopus"
 keywords = ["opus"]
 readme = "README.md"
 repository = "https://github.com/DoumanAsh/opusic-sys"

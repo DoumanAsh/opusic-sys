@@ -22,12 +22,10 @@ fn generate_lib() {
 
 }
 
-#[cfg(feature = "build-bindgen")]
-fn run() {
-    generate_lib();
+#[cfg(not(feature = "build-bindgen"))]
+fn generate_lib() {
 }
 
-#[cfg(not(feature = "build-bindgen"))]
 #[cfg(any(unix, target_env="gnu"))]
 fn build(out_dir: &std::path::Path) {
     const CURRENT_DIR: &'static str = "opus";
@@ -78,7 +76,6 @@ fn build(out_dir: &std::path::Path) {
     println!("cargo:rustc-flags=-L native={}/lib -l static=opus", out_dir.display());
 }
 
-#[cfg(not(feature = "build-bindgen"))]
 #[cfg(all(windows, target_env="msvc"))]
 fn build(_: &std::path::Path) {
     #[cfg(target_arch = "x86")]
@@ -91,8 +88,9 @@ fn build(_: &std::path::Path) {
     println!("cargo:rustc-flags=-L native={} -l static=opus", lib_dir.display());
 }
 
-#[cfg(not(feature = "build-bindgen"))]
 fn run() {
+    generate_lib();
+
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let out_path = std::path::Path::new(&out_dir);
 
