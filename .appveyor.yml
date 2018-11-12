@@ -25,4 +25,3 @@ build: false
 # Equivalent to Travis' `script` phase
 test_script:
   - cargo build
-  - cargo build --features build-bindgen
