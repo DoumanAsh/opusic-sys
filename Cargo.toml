@@ -1,0 +1,18 @@
+[package]
+name = "opusic-sys"
+version = "0.1.0"
+authors = ["Douman <douman@gmx.se>"]
+keywords = ["opus"]
+readme = "README.md"
+repository = "https://github.com/DoumanAsh/opusic-sys"
+license = "Apache-2.0"
+
+[dependencies]
+
+[build-dependencies.bindgen]
+version = "0.43"
+optional = true
+
+[features]
+# Used internally to generate lib.rs
+build-bindgen = ["bindgen"]
