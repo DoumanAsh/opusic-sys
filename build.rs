@@ -3,6 +3,19 @@ extern crate bindgen;
 
 #[cfg(feature = "build-bindgen")]
 fn generate_lib() {
+    #[derive(Debug)]
+    struct ParseCallbacks;
+
+    impl bindgen::callbacks::ParseCallbacks for ParseCallbacks {
+        fn int_macro(&self, name: &str, _value: i64) -> Option<bindgen::callbacks::IntKind> {
+            if name.starts_with("OPUS") {
+                Some(bindgen::callbacks::IntKind::Int)
+            } else {
+                None
+            }
+        }
+    }
+
     use std::path::PathBuf;
 
     const PREPEND_LIB: &'static str = "
@@ -15,6 +28,7 @@ fn generate_lib() {
 
     let bindings = bindgen::Builder::default().header("src/wrapper.h")
                                               .raw_line(PREPEND_LIB)
+                                              .parse_callbacks(Box::new(ParseCallbacks))
                                               .generate()
                                               .expect("Unable to generate bindings");
 
