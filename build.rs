@@ -33,6 +33,15 @@ fn build(out_dir: &std::path::Path) {
     const CURRENT_DIR: &'static str = "opus";
     use std::process::Command;
 
+    let res = Command::new("sh").arg("autogen.sh")
+                                .current_dir(CURRENT_DIR)
+                                .status()
+                                .expect("To execute sh command");
+
+    if !res.success() {
+        panic!("Failed to autogen libopus");
+    }
+
     let res = Command::new("sh").arg("configure")
                                 .arg("--disable-shared")
                                 .arg("--enable-static")
@@ -66,7 +75,7 @@ fn build(out_dir: &std::path::Path) {
         panic!("Failed to install libopus");
     }
 
-    println!("cargo:rustc-flags=-L native={}/lib -l static=opus", out_dir);
+    println!("cargo:rustc-flags=-L native={}/lib -l static=opus", out_dir.display());
 }
 
 #[cfg(not(feature = "build-bindgen"))]
