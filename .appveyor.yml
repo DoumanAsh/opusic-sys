@@ -18,6 +18,7 @@ install:
   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
   - rustc -Vv
   - cargo -V
+  - git submodule update --init --recursive
 
 # 'cargo test' takes care of building for us, so disable Appveyor's build stage.
 build: false
