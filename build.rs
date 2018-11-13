@@ -87,7 +87,8 @@ fn build(out_dir: &std::path::Path) {
         panic!("Failed to install libopus");
     }
 
-    println!("cargo:rustc-flags=-L native={}/lib -l static=opus", out_dir.display());
+    println!("cargo:rustc-link-lib=static=opus");
+    println!("cargo:rustc-link-search=native={}/lib", out_dir.display());
 }
 
 #[cfg(all(windows, target_env="msvc"))]
@@ -99,7 +100,9 @@ fn build(_: &std::path::Path) {
 
     let lib_dir = std::path::Path::new("prebuilt").join("msvc").join(LIB_DIR).canonicalize().expect("canonicalize");
 
-    println!("cargo:rustc-flags=-L native={} -l static=opus", lib_dir.display());
+    //on MSVC we need full name of lib
+    println!("cargo:rustc-link-lib=static=libopus");
+    println!("cargo:rustc-link-search=native={}", lib_dir.display());
 }
 
 fn run() {
