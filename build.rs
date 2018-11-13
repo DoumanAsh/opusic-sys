@@ -61,7 +61,7 @@ fn build(out_dir: &std::path::Path) {
                                 .arg("--disable-extra-programs")
                                 .arg("--with-pic")
                                 .arg("--prefix")
-                                .arg(out_dir.to_str().expect("To unwrap out_dir"))
+                                .arg(out_dir.to_str().expect("To unwrap out_dir").replace("\\", "/"))
                                 .current_dir(CURRENT_DIR)
                                 .status()
                                 .expect("To execute sh command");
@@ -105,7 +105,7 @@ fn build(_: &std::path::Path) {
 fn run() {
     generate_lib();
 
-    let out_dir = std::env::var("OUT_DIR").unwrap();
+    let out_dir = std::env::var("OUT_DIR").expect("To have OUT_DIR in build script");
     let out_path = std::path::Path::new(&out_dir);
 
     build(&out_path);
