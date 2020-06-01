@@ -29,6 +29,7 @@ fn generate_lib() {
     let bindings = bindgen::Builder::default().header("src/wrapper.h")
                                               .raw_line(PREPEND_LIB)
                                               .parse_callbacks(Box::new(ParseCallbacks))
+                                              .generate_comments(true)
                                               .generate()
                                               .expect("Unable to generate bindings");
 
@@ -40,92 +41,21 @@ fn generate_lib() {
 fn generate_lib() {
 }
 
-#[cfg(any(unix, target_env="gnu"))]
-fn build(out_dir: &std::path::Path) {
+fn build() {
     const CURRENT_DIR: &'static str = "opus";
-    use std::process::Command;
 
-    let res = Command::new("sh").arg("autogen.sh")
-                                .current_dir(CURRENT_DIR)
-                                .status()
-                                .expect("To execute sh command");
-
-    if !res.success() {
-        panic!("Failed to autogen libopus");
-    }
-
-    let compiler = cc::Build::new().get_compiler();
-
-    let mut command = Command::new("sh");
-
-    command.arg("configure");
-    command.arg("--disable-shared");
-    command.arg("--enable-static");
-    command.arg("--disable-doc");
-    command.arg("--disable-extra-programs");
-    command.arg("--with-pic");
-    command.arg("--prefix");
-    command.arg(out_dir.to_str().expect("To unwrap out_dir").replace("\\", "/"));
-    command.current_dir(CURRENT_DIR);
-    command.env("CC", compiler.path());
-
-    let mut target = std::env::var("TARGET").unwrap();
-    if let [platform, _, "windows", "gnu"] = target.split('-').collect::<Vec<_>>().as_slice() {
-	target = format!("{}-w64-mingw32", platform);
-    }
-    command.arg("--host");
-    command.arg(target);
-
-    if !compiler.cflags_env().is_empty() {
-        command.env("CFLAGS", compiler.cflags_env());
-    }
-
-    if !command.status().expect("To execute sh command").success() {
-        panic!("Failed to configure libopus");
-    }
-
-    let res = Command::new("make").current_dir(CURRENT_DIR)
-                                  .status()
-                                  .expect("To execute sh command");
-
-    if !res.success() {
-        panic!("Failed to build libopus");
-    }
-
-    let res = Command::new("make").current_dir(CURRENT_DIR)
-                                  .arg("install")
-                                  .status()
-                                  .expect("To execute sh command");
-
-    if !res.success() {
-        panic!("Failed to install libopus");
-    }
+    let out_dir = cmake::Config::new(CURRENT_DIR).define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
+                                                 .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF")
+                                                 .build();
 
     println!("cargo:rustc-link-lib=static=opus");
     println!("cargo:rustc-link-search=native={}/lib", out_dir.display());
 }
 
-#[cfg(all(windows, target_env="msvc"))]
-fn build(_: &std::path::Path) {
-    #[cfg(target_arch = "x86")]
-    const LIB_DIR: &'static str = "x86";
-    #[cfg(target_arch = "x86_64")]
-    const LIB_DIR: &'static str = "x64";
-
-    let lib_dir = std::path::Path::new("prebuilt").join("msvc").join(LIB_DIR).canonicalize().expect("canonicalize");
-
-    //on MSVC we need full name of lib
-    println!("cargo:rustc-link-lib=static=libopus");
-    println!("cargo:rustc-link-search=native={}", lib_dir.display());
-}
-
 fn run() {
     generate_lib();
 
-    let out_dir = std::env::var("OUT_DIR").expect("To have OUT_DIR in build script");
-    let out_path = std::path::Path::new(&out_dir);
-
-    build(&out_path);
+    build();
 }
 
 fn main() {
