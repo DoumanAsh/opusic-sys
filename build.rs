@@ -29,7 +29,7 @@ fn generate_lib() {
     let bindings = bindgen::Builder::default().header("src/wrapper.h")
                                               .raw_line(PREPEND_LIB)
                                               .parse_callbacks(Box::new(ParseCallbacks))
-                                              .generate_comments(true)
+                                              .generate_comments(false)
                                               .generate()
                                               .expect("Unable to generate bindings");
 

@@ -82,20 +82,9 @@ pub type opus_uint32 = ::std::os::raw::c_uint;
 pub type opus_int16 = ::std::os::raw::c_short;
 pub type opus_uint16 = ::std::os::raw::c_ushort;
 extern "C" {
-    #[doc = " Converts an opus error code into a human readable string."]
-    #[doc = ""]
-    #[doc = " @param[in] error <tt>int</tt>: Error number"]
-    #[doc = " @returns Error string"]
     pub fn opus_strerror(error: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Gets the libopus version string."]
-    #[doc = ""]
-    #[doc = " Applications may look for the substring \"-fixed\" in the version string to"]
-    #[doc = " determine whether they have a fixed-point or floating-point build at"]
-    #[doc = " runtime."]
-    #[doc = ""]
-    #[doc = " @returns Version string"]
     pub fn opus_get_version_string() -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
@@ -104,44 +93,9 @@ pub struct OpusEncoder {
     _unused: [u8; 0],
 }
 extern "C" {
-    #[doc = " Gets the size of an <code>OpusEncoder</code> structure."]
-    #[doc = " @param[in] channels <tt>int</tt>: Number of channels."]
-    #[doc = "                                   This must be 1 or 2."]
-    #[doc = " @returns The size in bytes."]
     pub fn opus_encoder_get_size(channels: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Allocates and initializes an encoder state."]
-    #[doc = " There are three coding modes:"]
-    #[doc = ""]
-    #[doc = " @ref OPUS_APPLICATION_VOIP gives best quality at a given bitrate for voice"]
-    #[doc = "    signals. It enhances the  input signal by high-pass filtering and"]
-    #[doc = "    emphasizing formants and harmonics. Optionally  it includes in-band"]
-    #[doc = "    forward error correction to protect against packet loss. Use this"]
-    #[doc = "    mode for typical VoIP applications. Because of the enhancement,"]
-    #[doc = "    even at high bitrates the output may sound different from the input."]
-    #[doc = ""]
-    #[doc = " @ref OPUS_APPLICATION_AUDIO gives best quality at a given bitrate for most"]
-    #[doc = "    non-voice signals like music. Use this mode for music and mixed"]
-    #[doc = "    (music/voice) content, broadcast, and applications requiring less"]
-    #[doc = "    than 15 ms of coding delay."]
-    #[doc = ""]
-    #[doc = " @ref OPUS_APPLICATION_RESTRICTED_LOWDELAY configures low-delay mode that"]
-    #[doc = "    disables the speech-optimized mode in exchange for slightly reduced delay."]
-    #[doc = "    This mode can only be set on an newly initialized or freshly reset encoder"]
-    #[doc = "    because it changes the codec delay."]
-    #[doc = ""]
-    #[doc = " This is useful when the caller knows that the speech-optimized modes will not be needed (use with caution)."]
-    #[doc = " @param [in] Fs <tt>opus_int32</tt>: Sampling rate of input signal (Hz)"]
-    #[doc = "                                     This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                     24000, or 48000."]
-    #[doc = " @param [in] channels <tt>int</tt>: Number of channels (1 or 2) in input signal"]
-    #[doc = " @param [in] application <tt>int</tt>: Coding mode (@ref OPUS_APPLICATION_VOIP/@ref OPUS_APPLICATION_AUDIO/@ref OPUS_APPLICATION_RESTRICTED_LOWDELAY)"]
-    #[doc = " @param [out] error <tt>int*</tt>: @ref opus_errorcodes"]
-    #[doc = " @note Regardless of the sampling rate and number channels selected, the Opus encoder"]
-    #[doc = " can switch to a lower audio bandwidth or number of channels if the bitrate"]
-    #[doc = " selected is too low. This also means that it is safe to always use 48 kHz stereo input"]
-    #[doc = " and let the encoder optimize the encoding."]
     pub fn opus_encoder_create(
         Fs: opus_int32,
         channels: ::std::os::raw::c_int,
@@ -150,18 +104,6 @@ extern "C" {
     ) -> *mut OpusEncoder;
 }
 extern "C" {
-    #[doc = " Initializes a previously allocated encoder state"]
-    #[doc = " The memory pointed to by st must be at least the size returned by opus_encoder_get_size()."]
-    #[doc = " This is intended for applications which use their own allocator instead of malloc."]
-    #[doc = " @see opus_encoder_create(),opus_encoder_get_size()"]
-    #[doc = " To reset a previously initialized state, use the #OPUS_RESET_STATE CTL."]
-    #[doc = " @param [in] st <tt>OpusEncoder*</tt>: Encoder state"]
-    #[doc = " @param [in] Fs <tt>opus_int32</tt>: Sampling rate of input signal (Hz)"]
-    #[doc = "                                      This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                      24000, or 48000."]
-    #[doc = " @param [in] channels <tt>int</tt>: Number of channels (1 or 2) in input signal"]
-    #[doc = " @param [in] application <tt>int</tt>: Coding mode (OPUS_APPLICATION_VOIP/OPUS_APPLICATION_AUDIO/OPUS_APPLICATION_RESTRICTED_LOWDELAY)"]
-    #[doc = " @retval #OPUS_OK Success or @ref opus_errorcodes"]
     pub fn opus_encoder_init(
         st: *mut OpusEncoder,
         Fs: opus_int32,
@@ -170,33 +112,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Encodes an Opus frame."]
-    #[doc = " @param [in] st <tt>OpusEncoder*</tt>: Encoder state"]
-    #[doc = " @param [in] pcm <tt>opus_int16*</tt>: Input signal (interleaved if 2 channels). length is frame_size*channels*sizeof(opus_int16)"]
-    #[doc = " @param [in] frame_size <tt>int</tt>: Number of samples per channel in the"]
-    #[doc = "                                      input signal."]
-    #[doc = "                                      This must be an Opus frame size for"]
-    #[doc = "                                      the encoder's sampling rate."]
-    #[doc = "                                      For example, at 48 kHz the permitted"]
-    #[doc = "                                      values are 120, 240, 480, 960, 1920,"]
-    #[doc = "                                      and 2880."]
-    #[doc = "                                      Passing in a duration of less than"]
-    #[doc = "                                      10 ms (480 samples at 48 kHz) will"]
-    #[doc = "                                      prevent the encoder from using the LPC"]
-    #[doc = "                                      or hybrid modes."]
-    #[doc = " @param [out] data <tt>unsigned char*</tt>: Output payload."]
-    #[doc = "                                            This must contain storage for at"]
-    #[doc = "                                            least \\a max_data_bytes."]
-    #[doc = " @param [in] max_data_bytes <tt>opus_int32</tt>: Size of the allocated"]
-    #[doc = "                                                 memory for the output"]
-    #[doc = "                                                 payload. This may be"]
-    #[doc = "                                                 used to impose an upper limit on"]
-    #[doc = "                                                 the instant bitrate, but should"]
-    #[doc = "                                                 not be used as the only bitrate"]
-    #[doc = "                                                 control. Use #OPUS_SET_BITRATE to"]
-    #[doc = "                                                 control the bitrate."]
-    #[doc = " @returns The length of the encoded packet (in bytes) on success or a"]
-    #[doc = "          negative error code (see @ref opus_errorcodes) on failure."]
     pub fn opus_encode(
         st: *mut OpusEncoder,
         pcm: *const opus_int16,
@@ -206,38 +121,6 @@ extern "C" {
     ) -> opus_int32;
 }
 extern "C" {
-    #[doc = " Encodes an Opus frame from floating point input."]
-    #[doc = " @param [in] st <tt>OpusEncoder*</tt>: Encoder state"]
-    #[doc = " @param [in] pcm <tt>float*</tt>: Input in float format (interleaved if 2 channels), with a normal range of +/-1.0."]
-    #[doc = "          Samples with a range beyond +/-1.0 are supported but will"]
-    #[doc = "          be clipped by decoders using the integer API and should"]
-    #[doc = "          only be used if it is known that the far end supports"]
-    #[doc = "          extended dynamic range."]
-    #[doc = "          length is frame_size*channels*sizeof(float)"]
-    #[doc = " @param [in] frame_size <tt>int</tt>: Number of samples per channel in the"]
-    #[doc = "                                      input signal."]
-    #[doc = "                                      This must be an Opus frame size for"]
-    #[doc = "                                      the encoder's sampling rate."]
-    #[doc = "                                      For example, at 48 kHz the permitted"]
-    #[doc = "                                      values are 120, 240, 480, 960, 1920,"]
-    #[doc = "                                      and 2880."]
-    #[doc = "                                      Passing in a duration of less than"]
-    #[doc = "                                      10 ms (480 samples at 48 kHz) will"]
-    #[doc = "                                      prevent the encoder from using the LPC"]
-    #[doc = "                                      or hybrid modes."]
-    #[doc = " @param [out] data <tt>unsigned char*</tt>: Output payload."]
-    #[doc = "                                            This must contain storage for at"]
-    #[doc = "                                            least \\a max_data_bytes."]
-    #[doc = " @param [in] max_data_bytes <tt>opus_int32</tt>: Size of the allocated"]
-    #[doc = "                                                 memory for the output"]
-    #[doc = "                                                 payload. This may be"]
-    #[doc = "                                                 used to impose an upper limit on"]
-    #[doc = "                                                 the instant bitrate, but should"]
-    #[doc = "                                                 not be used as the only bitrate"]
-    #[doc = "                                                 control. Use #OPUS_SET_BITRATE to"]
-    #[doc = "                                                 control the bitrate."]
-    #[doc = " @returns The length of the encoded packet (in bytes) on success or a"]
-    #[doc = "          negative error code (see @ref opus_errorcodes) on failure."]
     pub fn opus_encode_float(
         st: *mut OpusEncoder,
         pcm: *const f32,
@@ -247,21 +130,9 @@ extern "C" {
     ) -> opus_int32;
 }
 extern "C" {
-    #[doc = " Frees an <code>OpusEncoder</code> allocated by opus_encoder_create()."]
-    #[doc = " @param[in] st <tt>OpusEncoder*</tt>: State to be freed."]
     pub fn opus_encoder_destroy(st: *mut OpusEncoder);
 }
 extern "C" {
-    #[doc = " Perform a CTL function on an Opus encoder."]
-    #[doc = ""]
-    #[doc = " Generally the request and subsequent arguments are generated"]
-    #[doc = " by a convenience macro."]
-    #[doc = " @param st <tt>OpusEncoder*</tt>: Encoder state."]
-    #[doc = " @param request This and all remaining parameters should be replaced by one"]
-    #[doc = "                of the convenience macros in @ref opus_genericctls or"]
-    #[doc = "                @ref opus_encoderctls."]
-    #[doc = " @see opus_genericctls"]
-    #[doc = " @see opus_encoderctls"]
     pub fn opus_encoder_ctl(
         st: *mut OpusEncoder,
         request: ::std::os::raw::c_int,
@@ -274,27 +145,9 @@ pub struct OpusDecoder {
     _unused: [u8; 0],
 }
 extern "C" {
-    #[doc = " Gets the size of an <code>OpusDecoder</code> structure."]
-    #[doc = " @param [in] channels <tt>int</tt>: Number of channels."]
-    #[doc = "                                    This must be 1 or 2."]
-    #[doc = " @returns The size in bytes."]
     pub fn opus_decoder_get_size(channels: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Allocates and initializes a decoder state."]
-    #[doc = " @param [in] Fs <tt>opus_int32</tt>: Sample rate to decode at (Hz)."]
-    #[doc = "                                     This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                     24000, or 48000."]
-    #[doc = " @param [in] channels <tt>int</tt>: Number of channels (1 or 2) to decode"]
-    #[doc = " @param [out] error <tt>int*</tt>: #OPUS_OK Success or @ref opus_errorcodes"]
-    #[doc = ""]
-    #[doc = " Internally Opus stores data at 48000 Hz, so that should be the default"]
-    #[doc = " value for Fs. However, the decoder can efficiently decode to buffers"]
-    #[doc = " at 8, 12, 16, and 24 kHz so if for some reason the caller cannot use"]
-    #[doc = " data at the full sample rate, or knows the compressed data doesn't"]
-    #[doc = " use the full frequency range, it can request decoding at a reduced"]
-    #[doc = " rate. Likewise, the decoder is capable of filling in either mono or"]
-    #[doc = " interleaved stereo pcm buffers, at the caller's request."]
     pub fn opus_decoder_create(
         Fs: opus_int32,
         channels: ::std::os::raw::c_int,
@@ -302,16 +155,6 @@ extern "C" {
     ) -> *mut OpusDecoder;
 }
 extern "C" {
-    #[doc = " Initializes a previously allocated decoder state."]
-    #[doc = " The state must be at least the size returned by opus_decoder_get_size()."]
-    #[doc = " This is intended for applications which use their own allocator instead of malloc. @see opus_decoder_create,opus_decoder_get_size"]
-    #[doc = " To reset a previously initialized state, use the #OPUS_RESET_STATE CTL."]
-    #[doc = " @param [in] st <tt>OpusDecoder*</tt>: Decoder state."]
-    #[doc = " @param [in] Fs <tt>opus_int32</tt>: Sampling rate to decode to (Hz)."]
-    #[doc = "                                     This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                     24000, or 48000."]
-    #[doc = " @param [in] channels <tt>int</tt>: Number of channels (1 or 2) to decode"]
-    #[doc = " @retval #OPUS_OK Success or @ref opus_errorcodes"]
     pub fn opus_decoder_init(
         st: *mut OpusDecoder,
         Fs: opus_int32,
@@ -319,21 +162,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Decode an Opus packet."]
-    #[doc = " @param [in] st <tt>OpusDecoder*</tt>: Decoder state"]
-    #[doc = " @param [in] data <tt>char*</tt>: Input payload. Use a NULL pointer to indicate packet loss"]
-    #[doc = " @param [in] len <tt>opus_int32</tt>: Number of bytes in payload*"]
-    #[doc = " @param [out] pcm <tt>opus_int16*</tt>: Output signal (interleaved if 2 channels). length"]
-    #[doc = "  is frame_size*channels*sizeof(opus_int16)"]
-    #[doc = " @param [in] frame_size Number of samples per channel of available space in \\a pcm."]
-    #[doc = "  If this is less than the maximum packet duration (120ms; 5760 for 48kHz), this function will"]
-    #[doc = "  not be capable of decoding some packets. In the case of PLC (data==NULL) or FEC (decode_fec=1),"]
-    #[doc = "  then frame_size needs to be exactly the duration of audio that is missing, otherwise the"]
-    #[doc = "  decoder will not be in the optimal state to decode the next incoming packet. For the PLC and"]
-    #[doc = "  FEC cases, frame_size <b>must</b> be a multiple of 2.5 ms."]
-    #[doc = " @param [in] decode_fec <tt>int</tt>: Flag (0 or 1) to request that any in-band forward error correction data be"]
-    #[doc = "  decoded. If no such data is available, the frame is decoded as if it were lost."]
-    #[doc = " @returns Number of decoded samples or @ref opus_errorcodes"]
     pub fn opus_decode(
         st: *mut OpusDecoder,
         data: *const ::std::os::raw::c_uchar,
@@ -344,21 +172,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Decode an Opus packet with floating point output."]
-    #[doc = " @param [in] st <tt>OpusDecoder*</tt>: Decoder state"]
-    #[doc = " @param [in] data <tt>char*</tt>: Input payload. Use a NULL pointer to indicate packet loss"]
-    #[doc = " @param [in] len <tt>opus_int32</tt>: Number of bytes in payload"]
-    #[doc = " @param [out] pcm <tt>float*</tt>: Output signal (interleaved if 2 channels). length"]
-    #[doc = "  is frame_size*channels*sizeof(float)"]
-    #[doc = " @param [in] frame_size Number of samples per channel of available space in \\a pcm."]
-    #[doc = "  If this is less than the maximum packet duration (120ms; 5760 for 48kHz), this function will"]
-    #[doc = "  not be capable of decoding some packets. In the case of PLC (data==NULL) or FEC (decode_fec=1),"]
-    #[doc = "  then frame_size needs to be exactly the duration of audio that is missing, otherwise the"]
-    #[doc = "  decoder will not be in the optimal state to decode the next incoming packet. For the PLC and"]
-    #[doc = "  FEC cases, frame_size <b>must</b> be a multiple of 2.5 ms."]
-    #[doc = " @param [in] decode_fec <tt>int</tt>: Flag (0 or 1) to request that any in-band forward error correction data be"]
-    #[doc = "  decoded. If no such data is available the frame is decoded as if it were lost."]
-    #[doc = " @returns Number of decoded samples or @ref opus_errorcodes"]
     pub fn opus_decode_float(
         st: *mut OpusDecoder,
         data: *const ::std::os::raw::c_uchar,
@@ -369,16 +182,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Perform a CTL function on an Opus decoder."]
-    #[doc = ""]
-    #[doc = " Generally the request and subsequent arguments are generated"]
-    #[doc = " by a convenience macro."]
-    #[doc = " @param st <tt>OpusDecoder*</tt>: Decoder state."]
-    #[doc = " @param request This and all remaining parameters should be replaced by one"]
-    #[doc = "                of the convenience macros in @ref opus_genericctls or"]
-    #[doc = "                @ref opus_decoderctls."]
-    #[doc = " @see opus_genericctls"]
-    #[doc = " @see opus_decoderctls"]
     pub fn opus_decoder_ctl(
         st: *mut OpusDecoder,
         request: ::std::os::raw::c_int,
@@ -386,23 +189,9 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Frees an <code>OpusDecoder</code> allocated by opus_decoder_create()."]
-    #[doc = " @param[in] st <tt>OpusDecoder*</tt>: State to be freed."]
     pub fn opus_decoder_destroy(st: *mut OpusDecoder);
 }
 extern "C" {
-    #[doc = " Parse an opus packet into one or more frames."]
-    #[doc = " Opus_decode will perform this operation internally so most applications do"]
-    #[doc = " not need to use this function."]
-    #[doc = " This function does not copy the frames, the returned pointers are pointers into"]
-    #[doc = " the input packet."]
-    #[doc = " @param [in] data <tt>char*</tt>: Opus packet to be parsed"]
-    #[doc = " @param [in] len <tt>opus_int32</tt>: size of data"]
-    #[doc = " @param [out] out_toc <tt>char*</tt>: TOC pointer"]
-    #[doc = " @param [out] frames <tt>char*[48]</tt> encapsulated frames"]
-    #[doc = " @param [out] size <tt>opus_int16[48]</tt> sizes of the encapsulated frames"]
-    #[doc = " @param [out] payload_offset <tt>int*</tt>: returns the position of the payload within the packet (in bytes)"]
-    #[doc = " @returns number of frames"]
     pub fn opus_packet_parse(
         data: *const ::std::os::raw::c_uchar,
         len: opus_int32,
@@ -413,62 +202,27 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Gets the bandwidth of an Opus packet."]
-    #[doc = " @param [in] data <tt>char*</tt>: Opus packet"]
-    #[doc = " @retval OPUS_BANDWIDTH_NARROWBAND Narrowband (4kHz bandpass)"]
-    #[doc = " @retval OPUS_BANDWIDTH_MEDIUMBAND Mediumband (6kHz bandpass)"]
-    #[doc = " @retval OPUS_BANDWIDTH_WIDEBAND Wideband (8kHz bandpass)"]
-    #[doc = " @retval OPUS_BANDWIDTH_SUPERWIDEBAND Superwideband (12kHz bandpass)"]
-    #[doc = " @retval OPUS_BANDWIDTH_FULLBAND Fullband (20kHz bandpass)"]
-    #[doc = " @retval OPUS_INVALID_PACKET The compressed data passed is corrupted or of an unsupported type"]
     pub fn opus_packet_get_bandwidth(data: *const ::std::os::raw::c_uchar)
         -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Gets the number of samples per frame from an Opus packet."]
-    #[doc = " @param [in] data <tt>char*</tt>: Opus packet."]
-    #[doc = "                                  This must contain at least one byte of"]
-    #[doc = "                                  data."]
-    #[doc = " @param [in] Fs <tt>opus_int32</tt>: Sampling rate in Hz."]
-    #[doc = "                                     This must be a multiple of 400, or"]
-    #[doc = "                                     inaccurate results will be returned."]
-    #[doc = " @returns Number of samples per frame."]
     pub fn opus_packet_get_samples_per_frame(
         data: *const ::std::os::raw::c_uchar,
         Fs: opus_int32,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Gets the number of channels from an Opus packet."]
-    #[doc = " @param [in] data <tt>char*</tt>: Opus packet"]
-    #[doc = " @returns Number of channels"]
-    #[doc = " @retval OPUS_INVALID_PACKET The compressed data passed is corrupted or of an unsupported type"]
     pub fn opus_packet_get_nb_channels(
         data: *const ::std::os::raw::c_uchar,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Gets the number of frames in an Opus packet."]
-    #[doc = " @param [in] packet <tt>char*</tt>: Opus packet"]
-    #[doc = " @param [in] len <tt>opus_int32</tt>: Length of packet"]
-    #[doc = " @returns Number of frames"]
-    #[doc = " @retval OPUS_BAD_ARG Insufficient data was passed to the function"]
-    #[doc = " @retval OPUS_INVALID_PACKET The compressed data passed is corrupted or of an unsupported type"]
     pub fn opus_packet_get_nb_frames(
         packet: *const ::std::os::raw::c_uchar,
         len: opus_int32,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Gets the number of samples of an Opus packet."]
-    #[doc = " @param [in] packet <tt>char*</tt>: Opus packet"]
-    #[doc = " @param [in] len <tt>opus_int32</tt>: Length of packet"]
-    #[doc = " @param [in] Fs <tt>opus_int32</tt>: Sampling rate in Hz."]
-    #[doc = "                                     This must be a multiple of 400, or"]
-    #[doc = "                                     inaccurate results will be returned."]
-    #[doc = " @returns Number of samples"]
-    #[doc = " @retval OPUS_BAD_ARG Insufficient data was passed to the function"]
-    #[doc = " @retval OPUS_INVALID_PACKET The compressed data passed is corrupted or of an unsupported type"]
     pub fn opus_packet_get_nb_samples(
         packet: *const ::std::os::raw::c_uchar,
         len: opus_int32,
@@ -476,13 +230,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Gets the number of samples of an Opus packet."]
-    #[doc = " @param [in] dec <tt>OpusDecoder*</tt>: Decoder state"]
-    #[doc = " @param [in] packet <tt>char*</tt>: Opus packet"]
-    #[doc = " @param [in] len <tt>opus_int32</tt>: Length of packet"]
-    #[doc = " @returns Number of samples"]
-    #[doc = " @retval OPUS_BAD_ARG Insufficient data was passed to the function"]
-    #[doc = " @retval OPUS_INVALID_PACKET The compressed data passed is corrupted or of an unsupported type"]
     pub fn opus_decoder_get_nb_samples(
         dec: *const OpusDecoder,
         packet: *const ::std::os::raw::c_uchar,
@@ -490,15 +237,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Applies soft-clipping to bring a float signal within the [-1,1] range. If"]
-    #[doc = " the signal is already in that range, nothing is done. If there are values"]
-    #[doc = " outside of [-1,1], then the signal is clipped as smoothly as possible to"]
-    #[doc = " both fit in the range and avoid creating excessive distortion in the"]
-    #[doc = " process."]
-    #[doc = " @param [in,out] pcm <tt>float*</tt>: Input PCM and modified PCM"]
-    #[doc = " @param [in] frame_size <tt>int</tt> Number of samples per channel to process"]
-    #[doc = " @param [in] channels <tt>int</tt>: Number of channels"]
-    #[doc = " @param [in,out] softclip_mem <tt>float*</tt>: State memory for the soft clipping process (one float per channel, initialized to zero)"]
     pub fn opus_pcm_soft_clip(
         pcm: *mut f32,
         frame_size: ::std::os::raw::c_int,
@@ -512,87 +250,18 @@ pub struct OpusRepacketizer {
     _unused: [u8; 0],
 }
 extern "C" {
-    #[doc = " Gets the size of an <code>OpusRepacketizer</code> structure."]
-    #[doc = " @returns The size in bytes."]
     pub fn opus_repacketizer_get_size() -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " (Re)initializes a previously allocated repacketizer state."]
-    #[doc = " The state must be at least the size returned by opus_repacketizer_get_size()."]
-    #[doc = " This can be used for applications which use their own allocator instead of"]
-    #[doc = " malloc()."]
-    #[doc = " It must also be called to reset the queue of packets waiting to be"]
-    #[doc = " repacketized, which is necessary if the maximum packet duration of 120 ms"]
-    #[doc = " is reached or if you wish to submit packets with a different Opus"]
-    #[doc = " configuration (coding mode, audio bandwidth, frame size, or channel count)."]
-    #[doc = " Failure to do so will prevent a new packet from being added with"]
-    #[doc = " opus_repacketizer_cat()."]
-    #[doc = " @see opus_repacketizer_create"]
-    #[doc = " @see opus_repacketizer_get_size"]
-    #[doc = " @see opus_repacketizer_cat"]
-    #[doc = " @param rp <tt>OpusRepacketizer*</tt>: The repacketizer state to"]
-    #[doc = "                                       (re)initialize."]
-    #[doc = " @returns A pointer to the same repacketizer state that was passed in."]
     pub fn opus_repacketizer_init(rp: *mut OpusRepacketizer) -> *mut OpusRepacketizer;
 }
 extern "C" {
-    #[doc = " Allocates memory and initializes the new repacketizer with"]
-    #[doc = " opus_repacketizer_init()."]
     pub fn opus_repacketizer_create() -> *mut OpusRepacketizer;
 }
 extern "C" {
-    #[doc = " Frees an <code>OpusRepacketizer</code> allocated by"]
-    #[doc = " opus_repacketizer_create()."]
-    #[doc = " @param[in] rp <tt>OpusRepacketizer*</tt>: State to be freed."]
     pub fn opus_repacketizer_destroy(rp: *mut OpusRepacketizer);
 }
 extern "C" {
-    #[doc = " Add a packet to the current repacketizer state."]
-    #[doc = " This packet must match the configuration of any packets already submitted"]
-    #[doc = " for repacketization since the last call to opus_repacketizer_init()."]
-    #[doc = " This means that it must have the same coding mode, audio bandwidth, frame"]
-    #[doc = " size, and channel count."]
-    #[doc = " This can be checked in advance by examining the top 6 bits of the first"]
-    #[doc = " byte of the packet, and ensuring they match the top 6 bits of the first"]
-    #[doc = " byte of any previously submitted packet."]
-    #[doc = " The total duration of audio in the repacketizer state also must not exceed"]
-    #[doc = " 120 ms, the maximum duration of a single packet, after adding this packet."]
-    #[doc = ""]
-    #[doc = " The contents of the current repacketizer state can be extracted into new"]
-    #[doc = " packets using opus_repacketizer_out() or opus_repacketizer_out_range()."]
-    #[doc = ""]
-    #[doc = " In order to add a packet with a different configuration or to add more"]
-    #[doc = " audio beyond 120 ms, you must clear the repacketizer state by calling"]
-    #[doc = " opus_repacketizer_init()."]
-    #[doc = " If a packet is too large to add to the current repacketizer state, no part"]
-    #[doc = " of it is added, even if it contains multiple frames, some of which might"]
-    #[doc = " fit."]
-    #[doc = " If you wish to be able to add parts of such packets, you should first use"]
-    #[doc = " another repacketizer to split the packet into pieces and add them"]
-    #[doc = " individually."]
-    #[doc = " @see opus_repacketizer_out_range"]
-    #[doc = " @see opus_repacketizer_out"]
-    #[doc = " @see opus_repacketizer_init"]
-    #[doc = " @param rp <tt>OpusRepacketizer*</tt>: The repacketizer state to which to"]
-    #[doc = "                                       add the packet."]
-    #[doc = " @param[in] data <tt>const unsigned char*</tt>: The packet data."]
-    #[doc = "                                                The application must ensure"]
-    #[doc = "                                                this pointer remains valid"]
-    #[doc = "                                                until the next call to"]
-    #[doc = "                                                opus_repacketizer_init() or"]
-    #[doc = "                                                opus_repacketizer_destroy()."]
-    #[doc = " @param len <tt>opus_int32</tt>: The number of bytes in the packet data."]
-    #[doc = " @returns An error code indicating whether or not the operation succeeded."]
-    #[doc = " @retval #OPUS_OK The packet's contents have been added to the repacketizer"]
-    #[doc = "                  state."]
-    #[doc = " @retval #OPUS_INVALID_PACKET The packet did not have a valid TOC sequence,"]
-    #[doc = "                              the packet's TOC sequence was not compatible"]
-    #[doc = "                              with previously submitted packets (because"]
-    #[doc = "                              the coding mode, audio bandwidth, frame size,"]
-    #[doc = "                              or channel count did not match), or adding"]
-    #[doc = "                              this packet would increase the total amount of"]
-    #[doc = "                              audio stored in the repacketizer state to more"]
-    #[doc = "                              than 120 ms."]
     pub fn opus_repacketizer_cat(
         rp: *mut OpusRepacketizer,
         data: *const ::std::os::raw::c_uchar,
@@ -600,36 +269,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Construct a new packet from data previously submitted to the repacketizer"]
-    #[doc = " state via opus_repacketizer_cat()."]
-    #[doc = " @param rp <tt>OpusRepacketizer*</tt>: The repacketizer state from which to"]
-    #[doc = "                                       construct the new packet."]
-    #[doc = " @param begin <tt>int</tt>: The index of the first frame in the current"]
-    #[doc = "                            repacketizer state to include in the output."]
-    #[doc = " @param end <tt>int</tt>: One past the index of the last frame in the"]
-    #[doc = "                          current repacketizer state to include in the"]
-    #[doc = "                          output."]
-    #[doc = " @param[out] data <tt>const unsigned char*</tt>: The buffer in which to"]
-    #[doc = "                                                 store the output packet."]
-    #[doc = " @param maxlen <tt>opus_int32</tt>: The maximum number of bytes to store in"]
-    #[doc = "                                    the output buffer. In order to guarantee"]
-    #[doc = "                                    success, this should be at least"]
-    #[doc = "                                    <code>1276</code> for a single frame,"]
-    #[doc = "                                    or for multiple frames,"]
-    #[doc = "                                    <code>1277*(end-begin)</code>."]
-    #[doc = "                                    However, <code>1*(end-begin)</code> plus"]
-    #[doc = "                                    the size of all packet data submitted to"]
-    #[doc = "                                    the repacketizer since the last call to"]
-    #[doc = "                                    opus_repacketizer_init() or"]
-    #[doc = "                                    opus_repacketizer_create() is also"]
-    #[doc = "                                    sufficient, and possibly much smaller."]
-    #[doc = " @returns The total size of the output packet on success, or an error code"]
-    #[doc = "          on failure."]
-    #[doc = " @retval #OPUS_BAD_ARG <code>[begin,end)</code> was an invalid range of"]
-    #[doc = "                       frames (begin < 0, begin >= end, or end >"]
-    #[doc = "                       opus_repacketizer_get_nb_frames())."]
-    #[doc = " @retval #OPUS_BUFFER_TOO_SMALL \\a maxlen was insufficient to contain the"]
-    #[doc = "                                complete output packet."]
     pub fn opus_repacketizer_out_range(
         rp: *mut OpusRepacketizer,
         begin: ::std::os::raw::c_int,
@@ -639,46 +278,9 @@ extern "C" {
     ) -> opus_int32;
 }
 extern "C" {
-    #[doc = " Return the total number of frames contained in packet data submitted to"]
-    #[doc = " the repacketizer state so far via opus_repacketizer_cat() since the last"]
-    #[doc = " call to opus_repacketizer_init() or opus_repacketizer_create()."]
-    #[doc = " This defines the valid range of packets that can be extracted with"]
-    #[doc = " opus_repacketizer_out_range() or opus_repacketizer_out()."]
-    #[doc = " @param rp <tt>OpusRepacketizer*</tt>: The repacketizer state containing the"]
-    #[doc = "                                       frames."]
-    #[doc = " @returns The total number of frames contained in the packet data submitted"]
-    #[doc = "          to the repacketizer state."]
     pub fn opus_repacketizer_get_nb_frames(rp: *mut OpusRepacketizer) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Construct a new packet from data previously submitted to the repacketizer"]
-    #[doc = " state via opus_repacketizer_cat()."]
-    #[doc = " This is a convenience routine that returns all the data submitted so far"]
-    #[doc = " in a single packet."]
-    #[doc = " It is equivalent to calling"]
-    #[doc = " @code"]
-    #[doc = " opus_repacketizer_out_range(rp, 0, opus_repacketizer_get_nb_frames(rp),"]
-    #[doc = "                             data, maxlen)"]
-    #[doc = " @endcode"]
-    #[doc = " @param rp <tt>OpusRepacketizer*</tt>: The repacketizer state from which to"]
-    #[doc = "                                       construct the new packet."]
-    #[doc = " @param[out] data <tt>const unsigned char*</tt>: The buffer in which to"]
-    #[doc = "                                                 store the output packet."]
-    #[doc = " @param maxlen <tt>opus_int32</tt>: The maximum number of bytes to store in"]
-    #[doc = "                                    the output buffer. In order to guarantee"]
-    #[doc = "                                    success, this should be at least"]
-    #[doc = "                                    <code>1277*opus_repacketizer_get_nb_frames(rp)</code>."]
-    #[doc = "                                    However,"]
-    #[doc = "                                    <code>1*opus_repacketizer_get_nb_frames(rp)</code>"]
-    #[doc = "                                    plus the size of all packet data"]
-    #[doc = "                                    submitted to the repacketizer since the"]
-    #[doc = "                                    last call to opus_repacketizer_init() or"]
-    #[doc = "                                    opus_repacketizer_create() is also"]
-    #[doc = "                                    sufficient, and possibly much smaller."]
-    #[doc = " @returns The total size of the output packet on success, or an error code"]
-    #[doc = "          on failure."]
-    #[doc = " @retval #OPUS_BUFFER_TOO_SMALL \\a maxlen was insufficient to contain the"]
-    #[doc = "                                complete output packet."]
     pub fn opus_repacketizer_out(
         rp: *mut OpusRepacketizer,
         data: *mut ::std::os::raw::c_uchar,
@@ -686,17 +288,6 @@ extern "C" {
     ) -> opus_int32;
 }
 extern "C" {
-    #[doc = " Pads a given Opus packet to a larger size (possibly changing the TOC sequence)."]
-    #[doc = " @param[in,out] data <tt>const unsigned char*</tt>: The buffer containing the"]
-    #[doc = "                                                   packet to pad."]
-    #[doc = " @param len <tt>opus_int32</tt>: The size of the packet."]
-    #[doc = "                                 This must be at least 1."]
-    #[doc = " @param new_len <tt>opus_int32</tt>: The desired size of the packet after padding."]
-    #[doc = "                                 This must be at least as large as len."]
-    #[doc = " @returns an error code"]
-    #[doc = " @retval #OPUS_OK \\a on success."]
-    #[doc = " @retval #OPUS_BAD_ARG \\a len was less than 1 or new_len was less than len."]
-    #[doc = " @retval #OPUS_INVALID_PACKET \\a data did not contain a valid Opus packet."]
     pub fn opus_packet_pad(
         data: *mut ::std::os::raw::c_uchar,
         len: opus_int32,
@@ -704,32 +295,9 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Remove all padding from a given Opus packet and rewrite the TOC sequence to"]
-    #[doc = " minimize space usage."]
-    #[doc = " @param[in,out] data <tt>const unsigned char*</tt>: The buffer containing the"]
-    #[doc = "                                                   packet to strip."]
-    #[doc = " @param len <tt>opus_int32</tt>: The size of the packet."]
-    #[doc = "                                 This must be at least 1."]
-    #[doc = " @returns The new size of the output packet on success, or an error code"]
-    #[doc = "          on failure."]
-    #[doc = " @retval #OPUS_BAD_ARG \\a len was less than 1."]
-    #[doc = " @retval #OPUS_INVALID_PACKET \\a data did not contain a valid Opus packet."]
     pub fn opus_packet_unpad(data: *mut ::std::os::raw::c_uchar, len: opus_int32) -> opus_int32;
 }
 extern "C" {
-    #[doc = " Pads a given Opus multi-stream packet to a larger size (possibly changing the TOC sequence)."]
-    #[doc = " @param[in,out] data <tt>const unsigned char*</tt>: The buffer containing the"]
-    #[doc = "                                                   packet to pad."]
-    #[doc = " @param len <tt>opus_int32</tt>: The size of the packet."]
-    #[doc = "                                 This must be at least 1."]
-    #[doc = " @param new_len <tt>opus_int32</tt>: The desired size of the packet after padding."]
-    #[doc = "                                 This must be at least 1."]
-    #[doc = " @param nb_streams <tt>opus_int32</tt>: The number of streams (not channels) in the packet."]
-    #[doc = "                                 This must be at least as large as len."]
-    #[doc = " @returns an error code"]
-    #[doc = " @retval #OPUS_OK \\a on success."]
-    #[doc = " @retval #OPUS_BAD_ARG \\a len was less than 1."]
-    #[doc = " @retval #OPUS_INVALID_PACKET \\a data did not contain a valid Opus packet."]
     pub fn opus_multistream_packet_pad(
         data: *mut ::std::os::raw::c_uchar,
         len: opus_int32,
@@ -738,18 +306,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Remove all padding from a given Opus multi-stream packet and rewrite the TOC sequence to"]
-    #[doc = " minimize space usage."]
-    #[doc = " @param[in,out] data <tt>const unsigned char*</tt>: The buffer containing the"]
-    #[doc = "                                                   packet to strip."]
-    #[doc = " @param len <tt>opus_int32</tt>: The size of the packet."]
-    #[doc = "                                 This must be at least 1."]
-    #[doc = " @param nb_streams <tt>opus_int32</tt>: The number of streams (not channels) in the packet."]
-    #[doc = "                                 This must be at least 1."]
-    #[doc = " @returns The new size of the output packet on success, or an error code"]
-    #[doc = "          on failure."]
-    #[doc = " @retval #OPUS_BAD_ARG \\a len was less than 1 or new_len was less than len."]
-    #[doc = " @retval #OPUS_INVALID_PACKET \\a data did not contain a valid Opus packet."]
     pub fn opus_multistream_packet_unpad(
         data: *mut ::std::os::raw::c_uchar,
         len: opus_int32,
@@ -767,20 +323,6 @@ pub struct OpusMSDecoder {
     _unused: [u8; 0],
 }
 extern "C" {
-    #[doc = " Gets the size of an OpusMSEncoder structure."]
-    #[doc = " @param streams <tt>int</tt>: The total number of streams to encode from the"]
-    #[doc = "                              input."]
-    #[doc = "                              This must be no more than 255."]
-    #[doc = " @param coupled_streams <tt>int</tt>: Number of coupled (2 channel) streams"]
-    #[doc = "                                      to encode."]
-    #[doc = "                                      This must be no larger than the total"]
-    #[doc = "                                      number of streams."]
-    #[doc = "                                      Additionally, The total number of"]
-    #[doc = "                                      encoded channels (<code>streams +"]
-    #[doc = "                                      coupled_streams</code>) must be no"]
-    #[doc = "                                      more than 255."]
-    #[doc = " @returns The size in bytes on success, or a negative error code"]
-    #[doc = "          (see @ref opus_errorcodes) on error."]
     pub fn opus_multistream_encoder_get_size(
         streams: ::std::os::raw::c_int,
         coupled_streams: ::std::os::raw::c_int,
@@ -793,48 +335,6 @@ extern "C" {
     ) -> opus_int32;
 }
 extern "C" {
-    #[doc = " Allocates and initializes a multistream encoder state."]
-    #[doc = " Call opus_multistream_encoder_destroy() to release"]
-    #[doc = " this object when finished."]
-    #[doc = " @param Fs <tt>opus_int32</tt>: Sampling rate of the input signal (in Hz)."]
-    #[doc = "                                This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                24000, or 48000."]
-    #[doc = " @param channels <tt>int</tt>: Number of channels in the input signal."]
-    #[doc = "                               This must be at most 255."]
-    #[doc = "                               It may be greater than the number of"]
-    #[doc = "                               coded channels (<code>streams +"]
-    #[doc = "                               coupled_streams</code>)."]
-    #[doc = " @param streams <tt>int</tt>: The total number of streams to encode from the"]
-    #[doc = "                              input."]
-    #[doc = "                              This must be no more than the number of channels."]
-    #[doc = " @param coupled_streams <tt>int</tt>: Number of coupled (2 channel) streams"]
-    #[doc = "                                      to encode."]
-    #[doc = "                                      This must be no larger than the total"]
-    #[doc = "                                      number of streams."]
-    #[doc = "                                      Additionally, The total number of"]
-    #[doc = "                                      encoded channels (<code>streams +"]
-    #[doc = "                                      coupled_streams</code>) must be no"]
-    #[doc = "                                      more than the number of input channels."]
-    #[doc = " @param[in] mapping <code>const unsigned char[channels]</code>: Mapping from"]
-    #[doc = "                    encoded channels to input channels, as described in"]
-    #[doc = "                    @ref opus_multistream. As an extra constraint, the"]
-    #[doc = "                    multistream encoder does not allow encoding coupled"]
-    #[doc = "                    streams for which one channel is unused since this"]
-    #[doc = "                    is never a good idea."]
-    #[doc = " @param application <tt>int</tt>: The target encoder application."]
-    #[doc = "                                  This must be one of the following:"]
-    #[doc = " <dl>"]
-    #[doc = " <dt>#OPUS_APPLICATION_VOIP</dt>"]
-    #[doc = " <dd>Process signal for improved speech intelligibility.</dd>"]
-    #[doc = " <dt>#OPUS_APPLICATION_AUDIO</dt>"]
-    #[doc = " <dd>Favor faithfulness to the original input.</dd>"]
-    #[doc = " <dt>#OPUS_APPLICATION_RESTRICTED_LOWDELAY</dt>"]
-    #[doc = " <dd>Configure the minimum possible coding delay by disabling certain modes"]
-    #[doc = " of operation.</dd>"]
-    #[doc = " </dl>"]
-    #[doc = " @param[out] error <tt>int *</tt>: Returns #OPUS_OK on success, or an error"]
-    #[doc = "                                   code (see @ref opus_errorcodes) on"]
-    #[doc = "                                   failure."]
     pub fn opus_multistream_encoder_create(
         Fs: opus_int32,
         channels: ::std::os::raw::c_int,
@@ -858,53 +358,6 @@ extern "C" {
     ) -> *mut OpusMSEncoder;
 }
 extern "C" {
-    #[doc = " Initialize a previously allocated multistream encoder state."]
-    #[doc = " The memory pointed to by \\a st must be at least the size returned by"]
-    #[doc = " opus_multistream_encoder_get_size()."]
-    #[doc = " This is intended for applications which use their own allocator instead of"]
-    #[doc = " malloc."]
-    #[doc = " To reset a previously initialized state, use the #OPUS_RESET_STATE CTL."]
-    #[doc = " @see opus_multistream_encoder_create"]
-    #[doc = " @see opus_multistream_encoder_get_size"]
-    #[doc = " @param st <tt>OpusMSEncoder*</tt>: Multistream encoder state to initialize."]
-    #[doc = " @param Fs <tt>opus_int32</tt>: Sampling rate of the input signal (in Hz)."]
-    #[doc = "                                This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                24000, or 48000."]
-    #[doc = " @param channels <tt>int</tt>: Number of channels in the input signal."]
-    #[doc = "                               This must be at most 255."]
-    #[doc = "                               It may be greater than the number of"]
-    #[doc = "                               coded channels (<code>streams +"]
-    #[doc = "                               coupled_streams</code>)."]
-    #[doc = " @param streams <tt>int</tt>: The total number of streams to encode from the"]
-    #[doc = "                              input."]
-    #[doc = "                              This must be no more than the number of channels."]
-    #[doc = " @param coupled_streams <tt>int</tt>: Number of coupled (2 channel) streams"]
-    #[doc = "                                      to encode."]
-    #[doc = "                                      This must be no larger than the total"]
-    #[doc = "                                      number of streams."]
-    #[doc = "                                      Additionally, The total number of"]
-    #[doc = "                                      encoded channels (<code>streams +"]
-    #[doc = "                                      coupled_streams</code>) must be no"]
-    #[doc = "                                      more than the number of input channels."]
-    #[doc = " @param[in] mapping <code>const unsigned char[channels]</code>: Mapping from"]
-    #[doc = "                    encoded channels to input channels, as described in"]
-    #[doc = "                    @ref opus_multistream. As an extra constraint, the"]
-    #[doc = "                    multistream encoder does not allow encoding coupled"]
-    #[doc = "                    streams for which one channel is unused since this"]
-    #[doc = "                    is never a good idea."]
-    #[doc = " @param application <tt>int</tt>: The target encoder application."]
-    #[doc = "                                  This must be one of the following:"]
-    #[doc = " <dl>"]
-    #[doc = " <dt>#OPUS_APPLICATION_VOIP</dt>"]
-    #[doc = " <dd>Process signal for improved speech intelligibility.</dd>"]
-    #[doc = " <dt>#OPUS_APPLICATION_AUDIO</dt>"]
-    #[doc = " <dd>Favor faithfulness to the original input.</dd>"]
-    #[doc = " <dt>#OPUS_APPLICATION_RESTRICTED_LOWDELAY</dt>"]
-    #[doc = " <dd>Configure the minimum possible coding delay by disabling certain modes"]
-    #[doc = " of operation.</dd>"]
-    #[doc = " </dl>"]
-    #[doc = " @returns #OPUS_OK on success, or an error code (see @ref opus_errorcodes)"]
-    #[doc = "          on failure."]
     pub fn opus_multistream_encoder_init(
         st: *mut OpusMSEncoder,
         Fs: opus_int32,
@@ -928,35 +381,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Encodes a multistream Opus frame."]
-    #[doc = " @param st <tt>OpusMSEncoder*</tt>: Multistream encoder state."]
-    #[doc = " @param[in] pcm <tt>const opus_int16*</tt>: The input signal as interleaved"]
-    #[doc = "                                            samples."]
-    #[doc = "                                            This must contain"]
-    #[doc = "                                            <code>frame_size*channels</code>"]
-    #[doc = "                                            samples."]
-    #[doc = " @param frame_size <tt>int</tt>: Number of samples per channel in the input"]
-    #[doc = "                                 signal."]
-    #[doc = "                                 This must be an Opus frame size for the"]
-    #[doc = "                                 encoder's sampling rate."]
-    #[doc = "                                 For example, at 48 kHz the permitted values"]
-    #[doc = "                                 are 120, 240, 480, 960, 1920, and 2880."]
-    #[doc = "                                 Passing in a duration of less than 10 ms"]
-    #[doc = "                                 (480 samples at 48 kHz) will prevent the"]
-    #[doc = "                                 encoder from using the LPC or hybrid modes."]
-    #[doc = " @param[out] data <tt>unsigned char*</tt>: Output payload."]
-    #[doc = "                                           This must contain storage for at"]
-    #[doc = "                                           least \\a max_data_bytes."]
-    #[doc = " @param [in] max_data_bytes <tt>opus_int32</tt>: Size of the allocated"]
-    #[doc = "                                                 memory for the output"]
-    #[doc = "                                                 payload. This may be"]
-    #[doc = "                                                 used to impose an upper limit on"]
-    #[doc = "                                                 the instant bitrate, but should"]
-    #[doc = "                                                 not be used as the only bitrate"]
-    #[doc = "                                                 control. Use #OPUS_SET_BITRATE to"]
-    #[doc = "                                                 control the bitrate."]
-    #[doc = " @returns The length of the encoded packet (in bytes) on success or a"]
-    #[doc = "          negative error code (see @ref opus_errorcodes) on failure."]
     pub fn opus_multistream_encode(
         st: *mut OpusMSEncoder,
         pcm: *const opus_int16,
@@ -966,42 +390,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Encodes a multistream Opus frame from floating point input."]
-    #[doc = " @param st <tt>OpusMSEncoder*</tt>: Multistream encoder state."]
-    #[doc = " @param[in] pcm <tt>const float*</tt>: The input signal as interleaved"]
-    #[doc = "                                       samples with a normal range of"]
-    #[doc = "                                       +/-1.0."]
-    #[doc = "                                       Samples with a range beyond +/-1.0"]
-    #[doc = "                                       are supported but will be clipped by"]
-    #[doc = "                                       decoders using the integer API and"]
-    #[doc = "                                       should only be used if it is known"]
-    #[doc = "                                       that the far end supports extended"]
-    #[doc = "                                       dynamic range."]
-    #[doc = "                                       This must contain"]
-    #[doc = "                                       <code>frame_size*channels</code>"]
-    #[doc = "                                       samples."]
-    #[doc = " @param frame_size <tt>int</tt>: Number of samples per channel in the input"]
-    #[doc = "                                 signal."]
-    #[doc = "                                 This must be an Opus frame size for the"]
-    #[doc = "                                 encoder's sampling rate."]
-    #[doc = "                                 For example, at 48 kHz the permitted values"]
-    #[doc = "                                 are 120, 240, 480, 960, 1920, and 2880."]
-    #[doc = "                                 Passing in a duration of less than 10 ms"]
-    #[doc = "                                 (480 samples at 48 kHz) will prevent the"]
-    #[doc = "                                 encoder from using the LPC or hybrid modes."]
-    #[doc = " @param[out] data <tt>unsigned char*</tt>: Output payload."]
-    #[doc = "                                           This must contain storage for at"]
-    #[doc = "                                           least \\a max_data_bytes."]
-    #[doc = " @param [in] max_data_bytes <tt>opus_int32</tt>: Size of the allocated"]
-    #[doc = "                                                 memory for the output"]
-    #[doc = "                                                 payload. This may be"]
-    #[doc = "                                                 used to impose an upper limit on"]
-    #[doc = "                                                 the instant bitrate, but should"]
-    #[doc = "                                                 not be used as the only bitrate"]
-    #[doc = "                                                 control. Use #OPUS_SET_BITRATE to"]
-    #[doc = "                                                 control the bitrate."]
-    #[doc = " @returns The length of the encoded packet (in bytes) on success or a"]
-    #[doc = "          negative error code (see @ref opus_errorcodes) on failure."]
     pub fn opus_multistream_encode_float(
         st: *mut OpusMSEncoder,
         pcm: *const f32,
@@ -1011,23 +399,9 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Frees an <code>OpusMSEncoder</code> allocated by"]
-    #[doc = " opus_multistream_encoder_create()."]
-    #[doc = " @param st <tt>OpusMSEncoder*</tt>: Multistream encoder state to be freed."]
     pub fn opus_multistream_encoder_destroy(st: *mut OpusMSEncoder);
 }
 extern "C" {
-    #[doc = " Perform a CTL function on a multistream Opus encoder."]
-    #[doc = ""]
-    #[doc = " Generally the request and subsequent arguments are generated by a"]
-    #[doc = " convenience macro."]
-    #[doc = " @param st <tt>OpusMSEncoder*</tt>: Multistream encoder state."]
-    #[doc = " @param request This and all remaining parameters should be replaced by one"]
-    #[doc = "                of the convenience macros in @ref opus_genericctls,"]
-    #[doc = "                @ref opus_encoderctls, or @ref opus_multistream_ctls."]
-    #[doc = " @see opus_genericctls"]
-    #[doc = " @see opus_encoderctls"]
-    #[doc = " @see opus_multistream_ctls"]
     pub fn opus_multistream_encoder_ctl(
         st: *mut OpusMSEncoder,
         request: ::std::os::raw::c_int,
@@ -1035,54 +409,12 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Gets the size of an <code>OpusMSDecoder</code> structure."]
-    #[doc = " @param streams <tt>int</tt>: The total number of streams coded in the"]
-    #[doc = "                              input."]
-    #[doc = "                              This must be no more than 255."]
-    #[doc = " @param coupled_streams <tt>int</tt>: Number streams to decode as coupled"]
-    #[doc = "                                      (2 channel) streams."]
-    #[doc = "                                      This must be no larger than the total"]
-    #[doc = "                                      number of streams."]
-    #[doc = "                                      Additionally, The total number of"]
-    #[doc = "                                      coded channels (<code>streams +"]
-    #[doc = "                                      coupled_streams</code>) must be no"]
-    #[doc = "                                      more than 255."]
-    #[doc = " @returns The size in bytes on success, or a negative error code"]
-    #[doc = "          (see @ref opus_errorcodes) on error."]
     pub fn opus_multistream_decoder_get_size(
         streams: ::std::os::raw::c_int,
         coupled_streams: ::std::os::raw::c_int,
     ) -> opus_int32;
 }
 extern "C" {
-    #[doc = " Allocates and initializes a multistream decoder state."]
-    #[doc = " Call opus_multistream_decoder_destroy() to release"]
-    #[doc = " this object when finished."]
-    #[doc = " @param Fs <tt>opus_int32</tt>: Sampling rate to decode at (in Hz)."]
-    #[doc = "                                This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                24000, or 48000."]
-    #[doc = " @param channels <tt>int</tt>: Number of channels to output."]
-    #[doc = "                               This must be at most 255."]
-    #[doc = "                               It may be different from the number of coded"]
-    #[doc = "                               channels (<code>streams +"]
-    #[doc = "                               coupled_streams</code>)."]
-    #[doc = " @param streams <tt>int</tt>: The total number of streams coded in the"]
-    #[doc = "                              input."]
-    #[doc = "                              This must be no more than 255."]
-    #[doc = " @param coupled_streams <tt>int</tt>: Number of streams to decode as coupled"]
-    #[doc = "                                      (2 channel) streams."]
-    #[doc = "                                      This must be no larger than the total"]
-    #[doc = "                                      number of streams."]
-    #[doc = "                                      Additionally, The total number of"]
-    #[doc = "                                      coded channels (<code>streams +"]
-    #[doc = "                                      coupled_streams</code>) must be no"]
-    #[doc = "                                      more than 255."]
-    #[doc = " @param[in] mapping <code>const unsigned char[channels]</code>: Mapping from"]
-    #[doc = "                    coded channels to output channels, as described in"]
-    #[doc = "                    @ref opus_multistream."]
-    #[doc = " @param[out] error <tt>int *</tt>: Returns #OPUS_OK on success, or an error"]
-    #[doc = "                                   code (see @ref opus_errorcodes) on"]
-    #[doc = "                                   failure."]
     pub fn opus_multistream_decoder_create(
         Fs: opus_int32,
         channels: ::std::os::raw::c_int,
@@ -1093,39 +425,6 @@ extern "C" {
     ) -> *mut OpusMSDecoder;
 }
 extern "C" {
-    #[doc = " Intialize a previously allocated decoder state object."]
-    #[doc = " The memory pointed to by \\a st must be at least the size returned by"]
-    #[doc = " opus_multistream_encoder_get_size()."]
-    #[doc = " This is intended for applications which use their own allocator instead of"]
-    #[doc = " malloc."]
-    #[doc = " To reset a previously initialized state, use the #OPUS_RESET_STATE CTL."]
-    #[doc = " @see opus_multistream_decoder_create"]
-    #[doc = " @see opus_multistream_deocder_get_size"]
-    #[doc = " @param st <tt>OpusMSEncoder*</tt>: Multistream encoder state to initialize."]
-    #[doc = " @param Fs <tt>opus_int32</tt>: Sampling rate to decode at (in Hz)."]
-    #[doc = "                                This must be one of 8000, 12000, 16000,"]
-    #[doc = "                                24000, or 48000."]
-    #[doc = " @param channels <tt>int</tt>: Number of channels to output."]
-    #[doc = "                               This must be at most 255."]
-    #[doc = "                               It may be different from the number of coded"]
-    #[doc = "                               channels (<code>streams +"]
-    #[doc = "                               coupled_streams</code>)."]
-    #[doc = " @param streams <tt>int</tt>: The total number of streams coded in the"]
-    #[doc = "                              input."]
-    #[doc = "                              This must be no more than 255."]
-    #[doc = " @param coupled_streams <tt>int</tt>: Number of streams to decode as coupled"]
-    #[doc = "                                      (2 channel) streams."]
-    #[doc = "                                      This must be no larger than the total"]
-    #[doc = "                                      number of streams."]
-    #[doc = "                                      Additionally, The total number of"]
-    #[doc = "                                      coded channels (<code>streams +"]
-    #[doc = "                                      coupled_streams</code>) must be no"]
-    #[doc = "                                      more than 255."]
-    #[doc = " @param[in] mapping <code>const unsigned char[channels]</code>: Mapping from"]
-    #[doc = "                    coded channels to output channels, as described in"]
-    #[doc = "                    @ref opus_multistream."]
-    #[doc = " @returns #OPUS_OK on success, or an error code (see @ref opus_errorcodes)"]
-    #[doc = "          on failure."]
     pub fn opus_multistream_decoder_init(
         st: *mut OpusMSDecoder,
         Fs: opus_int32,
@@ -1136,34 +435,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Decode a multistream Opus packet."]
-    #[doc = " @param st <tt>OpusMSDecoder*</tt>: Multistream decoder state."]
-    #[doc = " @param[in] data <tt>const unsigned char*</tt>: Input payload."]
-    #[doc = "                                                Use a <code>NULL</code>"]
-    #[doc = "                                                pointer to indicate packet"]
-    #[doc = "                                                loss."]
-    #[doc = " @param len <tt>opus_int32</tt>: Number of bytes in payload."]
-    #[doc = " @param[out] pcm <tt>opus_int16*</tt>: Output signal, with interleaved"]
-    #[doc = "                                       samples."]
-    #[doc = "                                       This must contain room for"]
-    #[doc = "                                       <code>frame_size*channels</code>"]
-    #[doc = "                                       samples."]
-    #[doc = " @param frame_size <tt>int</tt>: The number of samples per channel of"]
-    #[doc = "                                 available space in \\a pcm."]
-    #[doc = "                                 If this is less than the maximum packet duration"]
-    #[doc = "                                 (120 ms; 5760 for 48kHz), this function will not be capable"]
-    #[doc = "                                 of decoding some packets. In the case of PLC (data==NULL)"]
-    #[doc = "                                 or FEC (decode_fec=1), then frame_size needs to be exactly"]
-    #[doc = "                                 the duration of audio that is missing, otherwise the"]
-    #[doc = "                                 decoder will not be in the optimal state to decode the"]
-    #[doc = "                                 next incoming packet. For the PLC and FEC cases, frame_size"]
-    #[doc = "                                 <b>must</b> be a multiple of 2.5 ms."]
-    #[doc = " @param decode_fec <tt>int</tt>: Flag (0 or 1) to request that any in-band"]
-    #[doc = "                                 forward error correction data be decoded."]
-    #[doc = "                                 If no such data is available, the frame is"]
-    #[doc = "                                 decoded as if it were lost."]
-    #[doc = " @returns Number of samples decoded on success or a negative error code"]
-    #[doc = "          (see @ref opus_errorcodes) on failure."]
     pub fn opus_multistream_decode(
         st: *mut OpusMSDecoder,
         data: *const ::std::os::raw::c_uchar,
@@ -1174,34 +445,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Decode a multistream Opus packet with floating point output."]
-    #[doc = " @param st <tt>OpusMSDecoder*</tt>: Multistream decoder state."]
-    #[doc = " @param[in] data <tt>const unsigned char*</tt>: Input payload."]
-    #[doc = "                                                Use a <code>NULL</code>"]
-    #[doc = "                                                pointer to indicate packet"]
-    #[doc = "                                                loss."]
-    #[doc = " @param len <tt>opus_int32</tt>: Number of bytes in payload."]
-    #[doc = " @param[out] pcm <tt>opus_int16*</tt>: Output signal, with interleaved"]
-    #[doc = "                                       samples."]
-    #[doc = "                                       This must contain room for"]
-    #[doc = "                                       <code>frame_size*channels</code>"]
-    #[doc = "                                       samples."]
-    #[doc = " @param frame_size <tt>int</tt>: The number of samples per channel of"]
-    #[doc = "                                 available space in \\a pcm."]
-    #[doc = "                                 If this is less than the maximum packet duration"]
-    #[doc = "                                 (120 ms; 5760 for 48kHz), this function will not be capable"]
-    #[doc = "                                 of decoding some packets. In the case of PLC (data==NULL)"]
-    #[doc = "                                 or FEC (decode_fec=1), then frame_size needs to be exactly"]
-    #[doc = "                                 the duration of audio that is missing, otherwise the"]
-    #[doc = "                                 decoder will not be in the optimal state to decode the"]
-    #[doc = "                                 next incoming packet. For the PLC and FEC cases, frame_size"]
-    #[doc = "                                 <b>must</b> be a multiple of 2.5 ms."]
-    #[doc = " @param decode_fec <tt>int</tt>: Flag (0 or 1) to request that any in-band"]
-    #[doc = "                                 forward error correction data be decoded."]
-    #[doc = "                                 If no such data is available, the frame is"]
-    #[doc = "                                 decoded as if it were lost."]
-    #[doc = " @returns Number of samples decoded on success or a negative error code"]
-    #[doc = "          (see @ref opus_errorcodes) on failure."]
     pub fn opus_multistream_decode_float(
         st: *mut OpusMSDecoder,
         data: *const ::std::os::raw::c_uchar,
@@ -1212,17 +455,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Perform a CTL function on a multistream Opus decoder."]
-    #[doc = ""]
-    #[doc = " Generally the request and subsequent arguments are generated by a"]
-    #[doc = " convenience macro."]
-    #[doc = " @param st <tt>OpusMSDecoder*</tt>: Multistream decoder state."]
-    #[doc = " @param request This and all remaining parameters should be replaced by one"]
-    #[doc = "                of the convenience macros in @ref opus_genericctls,"]
-    #[doc = "                @ref opus_decoderctls, or @ref opus_multistream_ctls."]
-    #[doc = " @see opus_genericctls"]
-    #[doc = " @see opus_decoderctls"]
-    #[doc = " @see opus_multistream_ctls"]
     pub fn opus_multistream_decoder_ctl(
         st: *mut OpusMSDecoder,
         request: ::std::os::raw::c_int,
@@ -1230,8 +462,5 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Frees an <code>OpusMSDecoder</code> allocated by"]
-    #[doc = " opus_multistream_decoder_create()."]
-    #[doc = " @param st <tt>OpusMSDecoder</tt>: Multistream decoder state to be freed."]
     pub fn opus_multistream_decoder_destroy(st: *mut OpusMSDecoder);
 }
