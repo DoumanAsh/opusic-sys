@@ -54,19 +54,33 @@ fn build(out_dir: &std::path::Path) {
         panic!("Failed to autogen libopus");
     }
 
-    let res = Command::new("sh").arg("configure")
-                                .arg("--disable-shared")
-                                .arg("--enable-static")
-                                .arg("--disable-doc")
-                                .arg("--disable-extra-programs")
-                                .arg("--with-pic")
-                                .arg("--prefix")
-                                .arg(out_dir.to_str().expect("To unwrap out_dir").replace("\\", "/"))
-                                .current_dir(CURRENT_DIR)
-                                .status()
-                                .expect("To execute sh command");
+    let compiler = cc::Build::new().get_compiler();
 
-    if !res.success() {
+    let mut command = Command::new("sh");
+
+    command.arg("configure");
+    command.arg("--disable-shared");
+    command.arg("--enable-static");
+    command.arg("--disable-doc");
+    command.arg("--disable-extra-programs");
+    command.arg("--with-pic");
+    command.arg("--prefix");
+    command.arg(out_dir.to_str().expect("To unwrap out_dir").replace("\\", "/"));
+    command.current_dir(CURRENT_DIR);
+    command.env("CC", compiler.path());
+
+    let mut target = std::env::var("TARGET").unwrap();
+    if let [platform, _, "windows", "gnu"] = target.split('-').collect::<Vec<_>>().as_slice() {
+	target = format!("{}-w64-mingw32", platform);
+    }
+    command.arg("--host");
+    command.arg(target);
+
+    if !compiler.cflags_env().is_empty() {
+        command.env("CFLAGS", compiler.cflags_env());
+    }
+
+    if !command.status().expect("To execute sh command").success() {
         panic!("Failed to configure libopus");
     }
 
