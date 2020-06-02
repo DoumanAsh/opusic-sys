@@ -6,6 +6,8 @@
 
 Bindings to [libopus](https://github.com/xiph/opus)
 
+Target version [1.3.1](https://github.com/xiph/opus/releases/tag/v1.3.1)
+
 ## Re-generate bindings
 
 The feature `build-bindgen` is used to generate bindings.
