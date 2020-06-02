@@ -1,5 +1,6 @@
 # opusic-sys
 
+![Rust](https://github.com/DoumanAsh/opusic-sys/workflows/Rust/badge.svg?branch=master)
 [![Crates.io](https://img.shields.io/crates/v/opusic-sys.svg)](https://crates.io/crates/opusic-sys)
 [![Documentation](https://docs.rs/opusic-sys/badge.svg)](https://docs.rs/crate/opusic-sys/)
 
