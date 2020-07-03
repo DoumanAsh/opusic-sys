@@ -44,9 +44,18 @@ fn generate_lib() {
 fn build() {
     const CURRENT_DIR: &'static str = "opus";
 
-    let out_dir = cmake::Config::new(CURRENT_DIR).define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
-                                                 .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF")
-                                                 .build();
+    let mut cmake = cmake::Config::new(CURRENT_DIR);
+    cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
+         .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF");
+
+    #[cfg(feature = "avx-off")]
+    {
+        cmake.define("OPUS_X86_MAY_HAVE_AVX", "OFF")
+             .define("OPUS_X86_PRESUME_AVX", "OFF")
+             .define("AVX_SUPPORTED", "OFF");
+    }
+
+    let out_dir = cmake.build();
 
     println!("cargo:rustc-link-lib=static=opus");
     println!("cargo:rustc-link-search=native={}/lib", out_dir.display());
