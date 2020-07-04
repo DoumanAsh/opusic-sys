@@ -36,6 +36,3 @@ jobs:
 
     - name: Build
       run: cargo build
-
-    - name: Build AVX OFF
-      run: cargo build --features avx-off

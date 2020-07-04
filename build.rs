@@ -48,11 +48,17 @@ fn build() {
     cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
          .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF");
 
-    #[cfg(feature = "avx-off")]
-    {
-        cmake.define("OPUS_X86_MAY_HAVE_AVX", "OFF")
-             .define("OPUS_X86_PRESUME_AVX", "OFF")
-             .define("AVX_SUPPORTED", "OFF");
+
+    let host = std::env::var("HOST").unwrap();
+    let target = std::env::var("TARGET").unwrap();
+
+    if host == target {
+        #[cfg(not(target_feature = "avx"))]
+        {
+            cmake.define("OPUS_X86_MAY_HAVE_AVX", "OFF")
+                 .define("OPUS_X86_PRESUME_AVX", "OFF")
+                 .define("AVX_SUPPORTED", "OFF");
+        }
     }
 
     let out_dir = cmake.build();

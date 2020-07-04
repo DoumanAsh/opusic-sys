@@ -20,5 +20,3 @@ optional = true
 [features]
 # Used internally to generate lib.rs
 build-bindgen = ["bindgen"]
-# Disables `avx` support. Useful for older CPUs when opus C code incorrectly uses AVX
-avx-off = []
