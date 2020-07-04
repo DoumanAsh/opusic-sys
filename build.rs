@@ -53,8 +53,7 @@ fn build() {
     let target = std::env::var("TARGET").unwrap();
 
     if host == target {
-        #[cfg(not(target_feature = "avx"))]
-        {
+        if !std::is_x86_feature_detected!("avx") {
             cmake.define("OPUS_X86_MAY_HAVE_AVX", "OFF")
                  .define("OPUS_X86_PRESUME_AVX", "OFF")
                  .define("AVX_SUPPORTED", "OFF");
