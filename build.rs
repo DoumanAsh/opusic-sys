@@ -66,8 +66,8 @@ fn build() {
         }
 
         if !std::is_x86_feature_detected!("sse2") {
-            cmake.define("OPUS_X86_MAY_HAVE_SSE", "OFF")
-                 .define("OPUS_X86_PRESUME_SSE", "OFF")
+            cmake.define("OPUS_X86_MAY_HAVE_SSE2", "OFF")
+                 .define("OPUS_X86_PRESUME_SSE2", "OFF")
                  .define("SSE2_SUPPORTED", "OFF");
         }
 
