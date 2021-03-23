@@ -43,6 +43,30 @@ fn generate_lib() {
 fn generate_lib() {
 }
 
+fn get_android_vars() -> Option<(PathBuf, &'static str)> {
+    let target = std::env::var("TARGET").unwrap();
+
+    if let Ok(android_ndk) = std::env::var("ANDROID_NDK_HOME") {
+        let mut toolchain_file = PathBuf::new();
+        toolchain_file.push(android_ndk);
+        toolchain_file.push("build");
+        toolchain_file.push("cmake");
+        toolchain_file.push("android.toolchain.cmake");
+
+        let abi = match target.as_str() {
+            "armv7-linux-androideabi" => "armeabi-v7a",
+            "aarch64-linux-android" => "arm64-v8a",
+            "i686-linux-android" => "x86",
+            "x86_64-linux-android" => "x86_64",
+            _ => return None,
+        };
+
+        Some((toolchain_file, abi))
+    } else {
+        None
+    }
+}
+
 fn build() {
     const CURRENT_DIR: &'static str = "opus";
 
@@ -54,22 +78,12 @@ fn build() {
     let host = std::env::var("HOST").unwrap();
     let target = std::env::var("TARGET").unwrap();
 
-    if let Ok(android_ndk) = std::env::var("ANDROID_NDK_HOME") {
-        let mut toolchain_file = PathBuf::new();
-        toolchain_file.push(android_ndk);
-        toolchain_file.push("build");
-        toolchain_file.push("cmake");
-        toolchain_file.push("android.toolchain.cmake");
-
+    if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
-        let abi = match target.as_str() {
-            "armv7-linux-androideabi" => "armeabi-v7a",
-            "aarch64-linux-android" => "arm64-v8a",
-            "i686-linux-android" => "x86",
-            "x86_64-linux-android" => "x86_64",
-            _ => panic!("Unknown android target. Supported: armv7-linux-androideabi, aarch64-linux-android, i686-linux-android, x86_64-linux-android"),
-        };
         cmake.define("ANDROID_ABI", abi);
+
+        #[cfg(windows)]
+        cmake.generator("Ninja");
     }
 
     if host == target {
