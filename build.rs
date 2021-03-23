@@ -67,6 +67,16 @@ fn get_android_vars() -> Option<(PathBuf, &'static str)> {
     }
 }
 
+fn set_cmake_define_if_present(config: &mut cmake::Config, name: &str) {
+    if let Ok(value) = std::env::var(name) {
+        config.define(name, value);
+    } else if let Ok(value) = std::env::var(format!("CARGO_NDK_{}", name)) {
+        config.define(name, value);
+    } else {
+        println!("cargo:warning=Unable to find Android env variable '{}'. Hope for good default...", name);
+    }
+}
+
 fn build() {
     const CURRENT_DIR: &'static str = "opus";
 
@@ -81,6 +91,11 @@ fn build() {
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
         cmake.define("ANDROID_ABI", abi);
+
+        set_cmake_define_if_present(&mut cmake, "ANDROID_PLATFORM");
+        set_cmake_define_if_present(&mut cmake, "ANDROID_STL");
+        set_cmake_define_if_present(&mut cmake, "ANDROID_ARM_MODE");
+        set_cmake_define_if_present(&mut cmake, "ANDROID_ARM_NEON");
 
         #[cfg(windows)]
         cmake.generator("Ninja");
