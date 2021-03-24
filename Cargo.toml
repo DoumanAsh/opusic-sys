@@ -8,13 +8,15 @@ readme = "README.md"
 repository = "https://github.com/DoumanAsh/opusic-sys"
 license = "BSL-1.0"
 
-[dependencies]
+[dependencies.libc]
+version = "0.2"
+default-features = false
 
 [build-dependencies]
 cmake = "0.1"
 
 [build-dependencies.bindgen]
-version = "0.54"
+version = "0.57"
 optional = true
 
 [features]

@@ -18,9 +18,8 @@ fn generate_lib() {
         }
     }
 
-    use std::path::PathBuf;
-
     const PREPEND_LIB: &'static str = "
+#![no_std]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
@@ -32,6 +31,12 @@ fn generate_lib() {
                                               .raw_line(PREPEND_LIB)
                                               .parse_callbacks(Box::new(ParseCallbacks))
                                               .generate_comments(false)
+                                              .layout_tests(false)
+                                              .ctypes_prefix("libc")
+                                              .whitelist_type("[oO]pus.+")
+                                              .whitelist_function("[oO]pus.+")
+                                              .whitelist_var("[oO].+")
+                                              .use_core()
                                               .generate()
                                               .expect("Unable to generate bindings");
 
