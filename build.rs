@@ -33,9 +33,9 @@ fn generate_lib() {
                                               .generate_comments(false)
                                               .layout_tests(false)
                                               .ctypes_prefix("libc")
-                                              .whitelist_type("[oO]pus.+")
-                                              .whitelist_function("[oO]pus.+")
-                                              .whitelist_var("[oO].+")
+                                              .allowlist_type("[oO]pus.+")
+                                              .allowlist_function("[oO]pus.+")
+                                              .allowlist_var("[oO].+")
                                               .use_core()
                                               .generate()
                                               .expect("Unable to generate bindings");
