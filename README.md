@@ -8,6 +8,11 @@ Bindings to [libopus](https://github.com/xiph/opus)
 
 Target version [1.3.1](https://github.com/xiph/opus/releases/tag/v1.3.1)
 
+## Android build
+
+When building for android, library requires presence of env variable `ANDROID_NDK_HOME` in order to supply
+cmake with toolchain file and correct target arch.
+
 ## Re-generate bindings
 
 The feature `build-bindgen` is used to generate bindings.
