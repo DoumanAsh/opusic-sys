@@ -89,10 +89,10 @@ fn build() {
          .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF")
          //Defining these variables disable GNUInstallDirs so in addition to /lib
          //define some commonly build stuff too.
-         .define("CMAKE_INSTALL_BINDIR", "bin");
-         .define("CMAKE_INSTALL_MANDIR", "man");
-         .define("CMAKE_INSTALL_INCLUDEDIR", "include");
-         .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include");
+         .define("CMAKE_INSTALL_BINDIR", "bin")
+         .define("CMAKE_INSTALL_MANDIR", "man")
+         .define("CMAKE_INSTALL_INCLUDEDIR", "include")
+         .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
          .define("CMAKE_INSTALL_LIBDIR", "lib");
 
     let host = std::env::var("HOST").unwrap();
