@@ -140,6 +140,7 @@ fn build() {
 fn run() {
     generate_lib();
 
+    println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
     if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
         println!("cargo:rustc-link-search={}", dir);
         println!("cargo:rustc-link-lib=opus");
