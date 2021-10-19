@@ -91,6 +91,8 @@ fn build() {
 
     let host = std::env::var("HOST").unwrap();
     let target = std::env::var("TARGET").unwrap();
+    let target_family = std::env::var("CARGO_CFG_TARGET_FAMILY").unwrap();
+    let target_pointer_width = std::env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap();
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
@@ -134,7 +136,11 @@ fn build() {
     let out_dir = cmake.build();
 
     println!("cargo:rustc-link-lib=static=opus");
-    println!("cargo:rustc-link-search=native={}/lib", out_dir.display());
+    let suffix = match (&*target_family, &*target_pointer_width) {
+        ("unix", "64") => "64",
+        _ => "",
+    };
+    println!("cargo:rustc-link-search=native={}/lib{}", out_dir.display(), suffix);
 }
 
 fn run() {
