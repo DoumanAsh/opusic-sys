@@ -140,7 +140,12 @@ fn build() {
 fn run() {
     generate_lib();
 
-    build();
+    if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
+        println!("cargo:rustc-link-search={}", dir);
+        println!("cargo:rustc-link-lib=opus");
+    } else {
+        build();
+    }
 }
 
 fn main() {

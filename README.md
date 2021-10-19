@@ -8,6 +8,11 @@ Bindings to [libopus](https://github.com/xiph/opus)
 
 Target version [1.3.1](https://github.com/xiph/opus/releases/tag/v1.3.1)
 
+## Setup
+
+If the `OPUS_LIB_DIR` environment variable is set, it will be searched for the opus
+library. Otherwise, a static library will be built automatically.
+
 ## Android build
 
 When building for android, library requires presence of env variable `ANDROID_NDK_HOME` in order to supply
