@@ -86,8 +86,14 @@ fn build() {
 
     let mut cmake = cmake::Config::new(CURRENT_DIR);
     cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
-         .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF");
-
+         .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF")
+         //Defining these variables disable GNUInstallDirs so in addition to /lib
+         //define some commonly build stuff too.
+         .define("CMAKE_INSTALL_BINDIR", "bin")
+         .define("CMAKE_INSTALL_MANDIR", "man")
+         .define("CMAKE_INSTALL_INCLUDEDIR", "include")
+         .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
+         .define("CMAKE_INSTALL_LIBDIR", "lib");
 
     let host = std::env::var("HOST").unwrap();
     let target = std::env::var("TARGET").unwrap();
@@ -131,10 +137,12 @@ fn build() {
         }
     }
 
-    let out_dir = cmake.build();
+    let mut out_dir = cmake.build();
 
     println!("cargo:rustc-link-lib=static=opus");
-    println!("cargo:rustc-link-search=native={}/lib", out_dir.display());
+
+    out_dir.push("lib");
+    println!("cargo:rustc-link-search=native={}", out_dir.display());
 }
 
 fn run() {
