@@ -95,9 +95,6 @@ fn build() {
          .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
          .define("CMAKE_INSTALL_LIBDIR", "lib");
 
-    let host = std::env::var("HOST").unwrap();
-    let target = std::env::var("TARGET").unwrap();
-
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
         cmake.define("ANDROID_ABI", abi);
@@ -109,32 +106,6 @@ fn build() {
 
         #[cfg(windows)]
         cmake.generator("Ninja");
-    }
-
-    if host == target {
-        if !std::is_x86_feature_detected!("avx") {
-            cmake.define("OPUS_X86_MAY_HAVE_AVX", "OFF")
-                 .define("OPUS_X86_PRESUME_AVX", "OFF")
-                 .define("AVX_SUPPORTED", "OFF");
-        }
-
-        if !std::is_x86_feature_detected!("sse4.1") {
-            cmake.define("OPUS_X86_MAY_HAVE_SSE4_1", "OFF")
-                 .define("OPUS_X86_PRESUME_SSE4_1", "OFF")
-                 .define("SSE4_1_SUPPORTED", "OFF");
-        }
-
-        if !std::is_x86_feature_detected!("sse2") {
-            cmake.define("OPUS_X86_MAY_HAVE_SSE2", "OFF")
-                 .define("OPUS_X86_PRESUME_SSE2", "OFF")
-                 .define("SSE2_SUPPORTED", "OFF");
-        }
-
-        if !std::is_x86_feature_detected!("sse") {
-            cmake.define("OPUS_X86_MAY_HAVE_SSE", "OFF")
-                 .define("OPUS_X86_PRESUME_SSE", "OFF")
-                 .define("SSE1_SUPPORTED", "OFF");
-        }
     }
 
     let mut out_dir = cmake.build();
