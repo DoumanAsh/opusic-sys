@@ -27,3 +27,7 @@ To use it set env variable `LIBCLANG_PATH` to directory that contains clang bina
 ## Requirements
 
 - `cmake`
+
+### Optional
+
+- `ninja` - When present, build script defaults to use this generator
