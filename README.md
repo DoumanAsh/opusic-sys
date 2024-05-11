@@ -6,7 +6,7 @@
 
 Bindings to [libopus](https://github.com/xiph/opus)
 
-Target version [1.4](https://github.com/xiph/opus/releases/tag/v1.4)
+Target version [1.5.2](https://github.com/xiph/opus/releases/tag/v1.5.2)
 
 ## Setup
 

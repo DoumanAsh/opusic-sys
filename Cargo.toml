@@ -1,6 +1,6 @@
 [package]
 name = "opusic-sys"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Douman <douman@gmx.se>"]
 description = "Bindings to libopus"
 keywords = ["opus"]
@@ -17,7 +17,7 @@ default-features = false
 cmake = "0.1"
 
 [build-dependencies.bindgen]
-version = "0.58.1"
+version = "0.69"
 optional = true
 
 [features]

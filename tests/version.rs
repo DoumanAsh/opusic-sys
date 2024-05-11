@@ -8,5 +8,5 @@ fn check_version() {
         CStr::from_ptr(opus_get_version_string())
     };
     let version = version.to_str().expect("utf-8 string");
-    assert_eq!("libopus 1.4", version);
+    assert_eq!("libopus 1.5.2", version);
 }

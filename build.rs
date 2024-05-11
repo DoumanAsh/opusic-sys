@@ -104,7 +104,10 @@ fn build() {
         set_cmake_define_if_present(&mut cmake, "ANDROID_ARM_MODE");
         set_cmake_define_if_present(&mut cmake, "ANDROID_ARM_NEON");
 
-        #[cfg(windows)]
+    }
+
+    //Use ninja if present on system
+    if std::process::Command::new("ninja").arg("--version").status().map(|status| status.success()).unwrap_or(false) {
         cmake.generator("Ninja");
     }
 
@@ -120,6 +123,7 @@ fn run() {
     generate_lib();
 
     println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
+    println!("cargo:rerun-if-env-changed=ANDROID_NDK_HOME");
     if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
         assert!(std::path::Path::new(&dir).exists(), "OPUS_LIB_DIR ({}) does not exist!", dir);
         println!("cargo:rustc-link-search={}", dir);
