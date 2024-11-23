@@ -1,6 +1,6 @@
 # opusic-sys
 
-![Rust](https://github.com/DoumanAsh/opusic-sys/workflows/Rust/badge.svg?branch=master)
+[![Rust](https://github.com/DoumanAsh/opusic-sys/actions/workflows/rust.yml/badge.svg)](https://github.com/DoumanAsh/opusic-sys/actions/workflows/rust.yml)
 [![Crates.io](https://img.shields.io/crates/v/opusic-sys.svg)](https://crates.io/crates/opusic-sys)
 [![Documentation](https://docs.rs/opusic-sys/badge.svg)](https://docs.rs/crate/opusic-sys/)
 
@@ -30,4 +30,4 @@ To use it set env variable `LIBCLANG_PATH` to directory that contains clang bina
 
 ### Optional
 
-- `ninja` - When present, build script defaults to use this generator
+- `ninja` - When present, build script defaults to use corresponding CMake's generator
