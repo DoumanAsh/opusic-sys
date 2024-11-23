@@ -93,7 +93,8 @@ fn build() {
          .define("CMAKE_INSTALL_MANDIR", "man")
          .define("CMAKE_INSTALL_INCLUDEDIR", "include")
          .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
-         .define("CMAKE_INSTALL_LIBDIR", "lib");
+         .define("CMAKE_INSTALL_LIBDIR", "lib")
+         .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY");
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
