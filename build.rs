@@ -82,7 +82,7 @@ fn set_cmake_define_if_present(config: &mut cmake::Config, name: &str) {
 }
 
 fn build() {
-    const CURRENT_DIR: &'static str = "opus";
+    const CURRENT_DIR: &str = "opus";
 
     let mut cmake = cmake::Config::new(CURRENT_DIR);
     cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
@@ -95,6 +95,10 @@ fn build() {
          .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
          .define("CMAKE_INSTALL_LIBDIR", "lib")
          .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY");
+
+    if cfg!(feature = "dred") {
+        cmake.define("OPUS_DRED", "ON");
+    }
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);

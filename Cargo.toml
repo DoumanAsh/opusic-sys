@@ -1,6 +1,6 @@
 [package]
 name = "opusic-sys"
-version = "0.5.2"
+version = "0.5.3"
 authors = ["Douman <douman@gmx.se>"]
 description = "Bindings to libopus"
 keywords = ["opus"]
@@ -23,3 +23,5 @@ optional = true
 [features]
 # Used internally to generate lib.rs
 build-bindgen = ["bindgen"]
+# Enables DRED feature
+dred = []
