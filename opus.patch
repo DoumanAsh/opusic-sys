@@ -72,3 +72,16 @@ index 8535ad5..4878f80 100644
          target_compile_options(opus PRIVATE -msse4.1)
        endif()
      endif()
+diff --git a/opus/silk/x86/NSQ_del_dec_avx2.c b/opus/silk/x86/NSQ_del_dec_avx2.c
+index 21f00c2..63734ee 100644
+--- a/opus/silk/x86/NSQ_del_dec_avx2.c
++++ b/opus/silk/x86/NSQ_del_dec_avx2.c
+@@ -72,7 +72,7 @@ static OPUS_INLINE int verify_assumptions(const silk_encoder_state *psEncC)
+ 
+ /* Intrinsics not defined on MSVC */
+ #ifdef _MSC_VER
+-#include <Intsafe.h>
++#include <intsafe.h>
+ static inline int __builtin_sadd_overflow(opus_int32 a, opus_int32 b, opus_int32* res)
+ {
+     *res = a+b;
