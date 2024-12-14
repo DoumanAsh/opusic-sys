@@ -8,6 +8,8 @@ Bindings to [libopus](https://github.com/xiph/opus)
 
 Target version [1.5.2](https://github.com/xiph/opus/releases/tag/v1.5.2)
 
+This crate has the same license requirements as C source code.
+
 ## Setup
 
 If the `OPUS_LIB_DIR` environment variable is set, it will be searched for the opus
