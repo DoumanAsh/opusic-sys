@@ -1,6 +1,6 @@
 [package]
 name = "opusic-sys"
-version = "0.5.4"
+version = "0.5.5"
 authors = ["Douman <douman@gmx.se>"]
 description = "Bindings to libopus"
 keywords = ["opus"]

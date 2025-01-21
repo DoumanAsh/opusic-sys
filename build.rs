@@ -122,6 +122,14 @@ fn build() {
 
     out_dir.push("lib");
     println!("cargo:rustc-link-search=native={}", out_dir.display());
+
+    //Add lib64 in addition on Linux as some systems may default to lib64
+    #[cfg(target_os = "linux")]
+    {
+        out_dir.pop();
+        out_dir.push("lib64");
+        println!("cargo:rustc-link-search=native={}", out_dir.display());
+    }
 }
 
 fn run() {
