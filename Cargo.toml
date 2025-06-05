@@ -1,6 +1,6 @@
 [package]
 name = "opusic-sys"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["Douman <douman@gmx.se>"]
 description = "Bindings to libopus"
 keywords = ["opus"]
@@ -23,5 +23,11 @@ optional = true
 [features]
 # Used internally to generate lib.rs
 build-bindgen = ["bindgen"]
-# Enables DRED feature
+# enable DRED
 dred = []
+# disable run-time checks that are cheap and safe for use in production.
+no-hardening = []
+# disable stack protection.
+no-stack-protector = []
+# disable protection against buffer overflows.
+no-fortify-source = []
