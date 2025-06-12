@@ -99,6 +99,9 @@ fn build() {
     if cfg!(feature = "dred") {
         cmake.define("OPUS_DRED", "ON");
     }
+    if cfg!(feature = "osce") {
+        cmake.define("OPUS_OSCE", "ON");
+    }
     if cfg!(feature = "no-hardening") {
         cmake.define("OPUS_HARDENING", "OFF");
     }
