@@ -25,6 +25,8 @@ optional = true
 build-bindgen = ["bindgen"]
 # enable DRED
 dred = []
+# enable OSCE
+osce = []
 # disable run-time checks that are cheap and safe for use in production.
 no-hardening = []
 # disable stack protection.
