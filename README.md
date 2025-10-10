@@ -14,8 +14,11 @@ All modifications to the source code are described in [opus.patch](https://githu
 
 ## Setup
 
-If the `OPUS_LIB_DIR` environment variable is set, it will be searched for the opus
-library. Otherwise, a static library will be built automatically.
+By default, `libopus` is bundled, this can be deactivated using `default-features=false`.
+To explicitly enable bundling, enable feature `bundled`.
+
+If feature `bundled` is *not* enabled, then by default `$PATH` is searched for `libopus`.
+Alternatively, environment variable `OPUS_LIB_DIR` can be set to link against a specific library. (ex. `/usr/lib`)
 
 ## Android build
 

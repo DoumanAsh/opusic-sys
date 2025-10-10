@@ -146,14 +146,21 @@ fn build() {
 fn run() {
     generate_lib();
 
-    println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
     println!("cargo:rerun-if-env-changed=ANDROID_NDK_HOME");
-    if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
-        assert!(std::path::Path::new(&dir).exists(), "OPUS_LIB_DIR ({}) does not exist!", dir);
-        println!("cargo:rustc-link-search={}", dir);
-        println!("cargo:rustc-link-lib=opus");
-    } else {
+
+    // dont use any dynamic linking if bundling is requested
+    if cfg!(feature = "bundled") {
         build();
+    } else {
+        println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
+
+        if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
+            assert!(std::path::Path::new(&dir).exists(), "OPUS_LIB_DIR ({}) does not exist!", dir);
+            println!("cargo:rustc-link-search={}", dir);
+        }
+
+        // dynamic link, let the linker figure out the library path
+        println!("cargo:rustc-link-lib=dylib=opus");
     }
 }
 
