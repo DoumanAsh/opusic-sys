@@ -18,7 +18,7 @@ fn generate_lib() {
         }
     }
 
-    const PREPEND_LIB: &'static str = "
+    const PREPEND_LIB: &str = "
 #![no_std]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
