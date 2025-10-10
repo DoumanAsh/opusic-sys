@@ -21,6 +21,7 @@ version = "0.71"
 optional = true
 
 [features]
+default = ["bundled"]
 # Used internally to generate lib.rs
 build-bindgen = ["bindgen"]
 # enable DRED
