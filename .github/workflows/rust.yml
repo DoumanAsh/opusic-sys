@@ -6,8 +6,8 @@ on:
       - master
     paths:
       - '.github/workflows/rust.yml'
-      - 'src/**/*.rs'
-      - 'tests/**/*.rs'
+      - 'src/**.rs'
+      - 'tests/**'
       - 'Cargo.toml'
       - 'opus/**/*'
   pull_request:
@@ -16,29 +16,19 @@ on:
       - '**'
     paths:
       - '.github/workflows/rust.yml'
-      - 'src/**/*.rs'
-      - 'tests/**/*'
+      - 'src/**.rs'
+      - 'tests/**'
       - 'Cargo.toml'
       - 'opus/**/*'
-
 jobs:
-  build:
-
-    runs-on: ${{ matrix.os }}
-
+  check:
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Install Rust Unix
-      if: runner.os != 'Windows'
-      run: rustup update
-    - name: Install Rust Windows
-      if: runner.os == 'Windows'
-      run: rustup update
-
-    - name: Build
-      run: cargo test
+    if: github.event.pull_request.draft == false
+    uses: DoumanAsh/douman-ci/.github/workflows/rust.yml@master
+    with:
+      runs-on: ${{ matrix.os }}
+      min-rustc-version: "1.82.0"
+      cargo-features: "dred,osce"
+      cargo-no-features: true
