@@ -70,6 +70,7 @@ fn get_android_vars() -> Option<(PathBuf, &'static str)> {
     }
 }
 
+#[cfg(feature = "bundled")]
 fn set_cmake_define_if_present(config: &mut cmake::Config, name: &str) {
     if let Ok(value) = std::env::var(name) {
         config.define(name, value);
@@ -80,6 +81,7 @@ fn set_cmake_define_if_present(config: &mut cmake::Config, name: &str) {
     }
 }
 
+#[cfg(feature = "bundled")]
 fn build() {
     const CURRENT_DIR: &str = "opus";
 
@@ -149,9 +151,11 @@ fn run() {
     println!("cargo:rerun-if-env-changed=ANDROID_NDK_HOME");
 
     // dont use any dynamic linking if bundling is requested
-    if cfg!(feature = "bundled") {
-        build();
-    } else {
+    #[cfg(feature = "bundled")]
+    build();
+    
+    #[cfg(not(feature = "bundled"))]
+    {
         println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
 
         if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
