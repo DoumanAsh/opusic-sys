@@ -18,7 +18,7 @@ fn generate_lib() {
         }
     }
 
-    const PREPEND_LIB: &'static str = "
+    const PREPEND_LIB: &str = "
 #![no_std]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
@@ -70,6 +70,7 @@ fn get_android_vars() -> Option<(PathBuf, &'static str)> {
     }
 }
 
+#[cfg(feature = "bundled")]
 fn set_cmake_define_if_present(config: &mut cmake::Config, name: &str) {
     if let Ok(value) = std::env::var(name) {
         config.define(name, value);
@@ -80,14 +81,15 @@ fn set_cmake_define_if_present(config: &mut cmake::Config, name: &str) {
     }
 }
 
+#[cfg(feature = "bundled")]
 fn build() {
     const CURRENT_DIR: &str = "opus";
 
     let mut cmake = cmake::Config::new(CURRENT_DIR);
     cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
          .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF")
-         //Defining these variables disable GNUInstallDirs so in addition to /lib
-         //define some commonly build stuff too.
+         // Defining these variables disable GNUInstallDirs so in addition to /lib
+         // define some commonly build stuff too.
          .define("CMAKE_INSTALL_BINDIR", "bin")
          .define("CMAKE_INSTALL_MANDIR", "man")
          .define("CMAKE_INSTALL_INCLUDEDIR", "include")
@@ -122,7 +124,7 @@ fn build() {
         set_cmake_define_if_present(&mut cmake, "ANDROID_ARM_NEON");
     }
 
-    //Use ninja if present on system
+    // Use ninja if present on system
     if std::process::Command::new("ninja").arg("--version").status().map(|status| status.success()).unwrap_or(false) {
         cmake.generator("Ninja");
     }
@@ -134,7 +136,7 @@ fn build() {
     out_dir.push("lib");
     println!("cargo:rustc-link-search=native={}", out_dir.display());
 
-    //Add lib64 in addition on Linux as some systems may default to lib64
+    // Add lib64 in addition on Linux as some systems may default to lib64
     #[cfg(target_os = "linux")]
     {
         out_dir.pop();
@@ -146,14 +148,23 @@ fn build() {
 fn run() {
     generate_lib();
 
-    println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
     println!("cargo:rerun-if-env-changed=ANDROID_NDK_HOME");
-    if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
-        assert!(std::path::Path::new(&dir).exists(), "OPUS_LIB_DIR ({}) does not exist!", dir);
-        println!("cargo:rustc-link-search={}", dir);
-        println!("cargo:rustc-link-lib=opus");
-    } else {
-        build();
+
+    // dont use any dynamic linking if bundling is requested
+    #[cfg(feature = "bundled")]
+    build();
+    
+    #[cfg(not(feature = "bundled"))]
+    {
+        println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
+
+        if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
+            assert!(std::path::Path::new(&dir).exists(), "OPUS_LIB_DIR ({}) does not exist!", dir);
+            println!("cargo:rustc-link-search={}", dir);
+        }
+
+        // dynamic link, let the linker figure out the library path
+        println!("cargo:rustc-link-lib=dylib=opus");
     }
 }
 

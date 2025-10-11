@@ -14,13 +14,14 @@ version = "0.2"
 default-features = false
 
 [build-dependencies]
-cmake = "0.1"
+cmake = { version = "0.1", optional = true }
 
 [build-dependencies.bindgen]
 version = "0.71"
 optional = true
 
 [features]
+default = ["bundled"]
 # Used internally to generate lib.rs
 build-bindgen = ["bindgen"]
 # enable DRED
@@ -33,3 +34,5 @@ no-hardening = []
 no-stack-protector = []
 # disable protection against buffer overflows.
 no-fortify-source = []
+# bundle "libopus" instead of dynamic linking
+bundled = ["dep:cmake"]
