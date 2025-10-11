@@ -13,11 +13,12 @@ edition = "2018"
 version = "0.2"
 default-features = false
 
-[build-dependencies]
-cmake = { version = "0.1", optional = true }
+[build-dependencies.cmake]
+version = "0.1"
+optional = true
 
 [build-dependencies.bindgen]
-version = "0.71"
+version = "0.72"
 optional = true
 
 [features]

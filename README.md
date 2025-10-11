@@ -20,6 +20,8 @@ To explicitly enable bundling, enable feature `bundled`.
 If feature `bundled` is *not* enabled, then by default `$PATH` is searched for `libopus`.
 Alternatively, environment variable `OPUS_LIB_DIR` can be set to link against a specific library. (ex. `/usr/lib`)
 
+You can specify environment variable `OPUS_LIB_STATIC=true` to indicate preference for static linkage during dynamic lookup
+
 ## Android build
 
 When building for android, library requires presence of env variable `ANDROID_NDK_HOME` in order to supply
@@ -33,8 +35,8 @@ To use it set env variable `LIBCLANG_PATH` to directory that contains clang bina
 
 ## Requirements
 
-- `cmake`
+- `cmake` - when building with `bundled` feature
 
 ### Optional
 
-- `ninja` - When present, build script defaults to use corresponding CMake's generator
+- `ninja` - When present, build script, if `bundled` feature enabled, defaults to use corresponding CMake's generator

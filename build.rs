@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+#![allow(clippy::style)]
+
+use std::path;
 
 #[cfg(feature = "build-bindgen")]
 extern crate bindgen;
@@ -25,7 +27,7 @@ fn generate_lib() {
 #![allow(non_snake_case)]
 ";
 
-    let out = PathBuf::new().join("src").join("lib.rs");
+    let out = path::PathBuf::new().join("src").join("lib.rs");
 
     let bindings = bindgen::Builder::default().header("src/wrapper.h")
                                               .raw_line(PREPEND_LIB)
@@ -47,9 +49,12 @@ fn generate_lib() {
 fn generate_lib() {
 }
 
-fn get_android_vars() -> Option<(PathBuf, &'static str)> {
+#[cfg(feature = "bundled")]
+fn get_android_vars() -> Option<(path::PathBuf, &'static str)> {
+    println!("cargo:rerun-if-env-changed=ANDROID_NDK_HOME");
+
     if let Ok(android_ndk) = std::env::var("ANDROID_NDK_HOME") {
-        let mut toolchain_file = PathBuf::new();
+        let mut toolchain_file = path::PathBuf::new();
         toolchain_file.push(android_ndk);
         toolchain_file.push("build");
         toolchain_file.push("cmake");
@@ -88,8 +93,8 @@ fn build() {
     let mut cmake = cmake::Config::new(CURRENT_DIR);
     cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
          .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF")
-         // Defining these variables disable GNUInstallDirs so in addition to /lib
-         // define some commonly build stuff too.
+         //Defining these variables disable GNUInstallDirs so in addition to /lib
+         //define some commonly build stuff too.
          .define("CMAKE_INSTALL_BINDIR", "bin")
          .define("CMAKE_INSTALL_MANDIR", "man")
          .define("CMAKE_INSTALL_INCLUDEDIR", "include")
@@ -97,7 +102,7 @@ fn build() {
          .define("CMAKE_INSTALL_LIBDIR", "lib")
          .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY");
 
-    // Keep this up to date with Cargo.toml
+    //Keep this up to date with Cargo.toml
     if cfg!(feature = "dred") {
         cmake.define("OPUS_DRED", "ON");
     }
@@ -148,23 +153,42 @@ fn build() {
 fn run() {
     generate_lib();
 
-    println!("cargo:rerun-if-env-changed=ANDROID_NDK_HOME");
-
-    // dont use any dynamic linking if bundling is requested
+    //dont use any dynamic linking if bundling is requested
     #[cfg(feature = "bundled")]
     build();
-    
+
     #[cfg(not(feature = "bundled"))]
     {
-        println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
-
-        if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
-            assert!(std::path::Path::new(&dir).exists(), "OPUS_LIB_DIR ({}) does not exist!", dir);
-            println!("cargo:rustc-link-search={}", dir);
+        enum LinkMode {
+            Static,
+            Dynamic,
         }
 
-        // dynamic link, let the linker figure out the library path
-        println!("cargo:rustc-link-lib=dylib=opus");
+        impl core::fmt::Display for LinkMode {
+            fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                match self {
+                    Self::Static => fmt.write_str("static"),
+                    Self::Dynamic => fmt.write_str("dylib"),
+                }
+            }
+        }
+
+        println!("cargo:rerun-if-env-changed=OPUS_LIB_DIR");
+        println!("cargo:rerun-if-env-changed=OPUS_LIB_STATIC");
+
+        let mode = match std::env::var("OPUS_LIB_STATIC") {
+            Ok(is_static) if is_static.eq_ignore_ascii_case("true") => LinkMode::Static,
+            _ => LinkMode::Dynamic
+        };
+
+        if let Ok(dir) = std::env::var("OPUS_LIB_DIR") {
+            if !path::Path::new(&dir).exists() {
+                println!("cargo:warning=env::OPUS_LIB_DIR='{}' does not exist", dir);
+            }
+            println!("cargo:rustc-link-search={}", dir);
+        }
+        //let the linker figure out the library path
+        println!("cargo:rustc-link-lib={mode}=opus");
     }
 }
 
