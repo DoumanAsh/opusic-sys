@@ -34,7 +34,7 @@ fn generate_lib() {
                                               .parse_callbacks(Box::new(ParseCallbacks))
                                               .generate_comments(false)
                                               .layout_tests(false)
-                                              .ctypes_prefix("libc")
+                                              .ctypes_prefix("core::ffi")
                                               .allowlist_type("[oO]pus.+")
                                               .allowlist_function("[oO]pus.+")
                                               .allowlist_var("[oO].+")
@@ -117,6 +117,12 @@ fn build() {
     }
     if cfg!(feature = "no-fortify-source") {
         cmake.define("OPUS_FORTIFY_SOURCE", "OFF");
+    }
+    if cfg!(feature = "no-simd") {
+        cmake.define("OPUS_DISABLE_INTRINSICS", "ON");
+    }
+    if cfg!(feature = "fixed-point") {
+        cmake.define("OPUS_FIXED_POINT", "ON");
     }
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
