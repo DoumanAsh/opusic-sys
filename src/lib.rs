@@ -56,11 +56,19 @@ pub const OPUS_GET_IN_DTX_REQUEST: core::ffi::c_int = 4049;
 pub const OPUS_SET_DRED_DURATION_REQUEST: core::ffi::c_int = 4050;
 pub const OPUS_GET_DRED_DURATION_REQUEST: core::ffi::c_int = 4051;
 pub const OPUS_SET_DNN_BLOB_REQUEST: core::ffi::c_int = 4052;
+pub const OPUS_SET_OSCE_BWE_REQUEST: core::ffi::c_int = 4054;
+pub const OPUS_GET_OSCE_BWE_REQUEST: core::ffi::c_int = 4055;
+pub const OPUS_SET_QEXT_REQUEST: core::ffi::c_int = 4056;
+pub const OPUS_GET_QEXT_REQUEST: core::ffi::c_int = 4057;
+pub const OPUS_SET_IGNORE_EXTENSIONS_REQUEST: core::ffi::c_int = 4058;
+pub const OPUS_GET_IGNORE_EXTENSIONS_REQUEST: core::ffi::c_int = 4059;
 pub const OPUS_AUTO: core::ffi::c_int = -1000;
 pub const OPUS_BITRATE_MAX: core::ffi::c_int = -1;
 pub const OPUS_APPLICATION_VOIP: core::ffi::c_int = 2048;
 pub const OPUS_APPLICATION_AUDIO: core::ffi::c_int = 2049;
 pub const OPUS_APPLICATION_RESTRICTED_LOWDELAY: core::ffi::c_int = 2051;
+pub const OPUS_APPLICATION_RESTRICTED_SILK: core::ffi::c_int = 2052;
+pub const OPUS_APPLICATION_RESTRICTED_CELT: core::ffi::c_int = 2053;
 pub const OPUS_SIGNAL_VOICE: core::ffi::c_int = 3001;
 pub const OPUS_SIGNAL_MUSIC: core::ffi::c_int = 3002;
 pub const OPUS_BANDWIDTH_NARROWBAND: core::ffi::c_int = 1101;
@@ -129,6 +137,15 @@ unsafe extern "C" {
     ) -> opus_int32;
 }
 unsafe extern "C" {
+    pub fn opus_encode24(
+        st: *mut OpusEncoder,
+        pcm: *const opus_int32,
+        frame_size: core::ffi::c_int,
+        data: *mut core::ffi::c_uchar,
+        max_data_bytes: opus_int32,
+    ) -> opus_int32;
+}
+unsafe extern "C" {
     pub fn opus_encode_float(
         st: *mut OpusEncoder,
         pcm: *const f32,
@@ -185,6 +202,16 @@ unsafe extern "C" {
         data: *const core::ffi::c_uchar,
         len: opus_int32,
         pcm: *mut opus_int16,
+        frame_size: core::ffi::c_int,
+        decode_fec: core::ffi::c_int,
+    ) -> core::ffi::c_int;
+}
+unsafe extern "C" {
+    pub fn opus_decode24(
+        st: *mut OpusDecoder,
+        data: *const core::ffi::c_uchar,
+        len: opus_int32,
+        pcm: *mut opus_int32,
         frame_size: core::ffi::c_int,
         decode_fec: core::ffi::c_int,
     ) -> core::ffi::c_int;
@@ -262,6 +289,15 @@ unsafe extern "C" {
         dred: *const OpusDRED,
         dred_offset: opus_int32,
         pcm: *mut opus_int16,
+        frame_size: opus_int32,
+    ) -> core::ffi::c_int;
+}
+unsafe extern "C" {
+    pub fn opus_decoder_dred_decode24(
+        st: *mut OpusDecoder,
+        dred: *const OpusDRED,
+        dred_offset: opus_int32,
+        pcm: *mut opus_int32,
         frame_size: opus_int32,
     ) -> core::ffi::c_int;
 }
@@ -476,6 +512,15 @@ unsafe extern "C" {
     ) -> core::ffi::c_int;
 }
 unsafe extern "C" {
+    pub fn opus_multistream_encode24(
+        st: *mut OpusMSEncoder,
+        pcm: *const opus_int32,
+        frame_size: core::ffi::c_int,
+        data: *mut core::ffi::c_uchar,
+        max_data_bytes: opus_int32,
+    ) -> core::ffi::c_int;
+}
+unsafe extern "C" {
     pub fn opus_multistream_encode_float(
         st: *mut OpusMSEncoder,
         pcm: *const f32,
@@ -526,6 +571,16 @@ unsafe extern "C" {
         data: *const core::ffi::c_uchar,
         len: opus_int32,
         pcm: *mut opus_int16,
+        frame_size: core::ffi::c_int,
+        decode_fec: core::ffi::c_int,
+    ) -> core::ffi::c_int;
+}
+unsafe extern "C" {
+    pub fn opus_multistream_decode24(
+        st: *mut OpusMSDecoder,
+        data: *const core::ffi::c_uchar,
+        len: opus_int32,
+        pcm: *mut opus_int32,
         frame_size: core::ffi::c_int,
         decode_fec: core::ffi::c_int,
     ) -> core::ffi::c_int;
