@@ -10,6 +10,8 @@ Target version [1.6.1](https://github.com/xiph/opus/releases/tag/v1.6.1)
 
 This crate has the same license requirements as C source code.
 
+All modifications to the source code are described in [opus.patch](https://github.com/DoumanAsh/opusic-sys/blob/master/opus.patch)
+
 High level bindings: [opusic-c](https://github.com/DoumanAsh/opusic-c)
 
 ## Setup
