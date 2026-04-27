@@ -6,7 +6,7 @@
 
 Bindings to [libopus](https://github.com/xiph/opus)
 
-Target version [1.5.2](https://github.com/xiph/opus/releases/tag/v1.5.2)
+Target version [1.6.1](https://github.com/xiph/opus/releases/tag/v1.6.1)
 
 This crate has the same license requirements as C source code.
 
