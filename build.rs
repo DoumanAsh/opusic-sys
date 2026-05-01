@@ -100,7 +100,19 @@ fn build() {
          .define("CMAKE_INSTALL_INCLUDEDIR", "include")
          .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
          .define("CMAKE_INSTALL_LIBDIR", "lib")
-         .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY");
+         .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY")
+         // The bundled libopus.a is consumed by rustc (bundled into the
+         // rlib), not the C link, so C-level LTO gains nothing here. If the
+         // ambient CFLAGS contain `-flto` (e.g. Arch's makepkg with
+         // `OPTIONS=(lto)`, Gentoo `LTOFLAGS`, distros enabling it by
+         // default), GCC produces slim LTO objects: empty `.text`, code only
+         // in `.gnu.lto_*` sections, marked with `__gnu_lto_slim`. rust-lld
+         // links the rlib without an LTO plugin and reports the opus_*
+         // symbols as undefined. Force LTO off here regardless of inherited
+         // flags. `-fno-lto` overrides any preceding `-flto*` (gcc/clang
+         // honor the last one) and is a no-op for compilers that don't
+         // recognize it.
+         .cflag("-fno-lto");
 
     //Keep this up to date with Cargo.toml
     if cfg!(feature = "dred") {
