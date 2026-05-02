@@ -9,6 +9,7 @@ on:
       - 'src/**.rs'
       - 'tests/**'
       - 'Cargo.toml'
+      - 'build.rs'
       - 'opus/**/*'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -19,6 +20,7 @@ on:
       - 'src/**.rs'
       - 'tests/**'
       - 'Cargo.toml'
+      - 'build.rs'
       - 'opus/**/*'
 jobs:
   check:
