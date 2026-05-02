@@ -100,7 +100,9 @@ fn build() {
          .define("CMAKE_INSTALL_INCLUDEDIR", "include")
          .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
          .define("CMAKE_INSTALL_LIBDIR", "lib")
-         .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY");
+         .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY")
+         //Ensure opus's CMake never enables LTO
+         .define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", "off");
 
     //Keep this up to date with Cargo.toml
     if cfg!(feature = "dred") {
@@ -123,6 +125,20 @@ fn build() {
     }
     if cfg!(feature = "fixed-point") {
         cmake.define("OPUS_FIXED_POINT", "ON");
+    }
+
+    //Disable LTO if someone tries to force it (e.g. Arch makepkg)
+    if let Ok(cflags) = std::env::var("CFLAGS") {
+        if cflags.contains("-flto") {
+            println!("cargo:warning=LTO detected in CFLAGS. Overriding...");
+            cmake.cflag("-fno-lto");
+        }
+    }
+    if let Ok(cflags) = std::env::var("CXXFLAGS") {
+        if cflags.contains("-flto") {
+            println!("cargo:warning=LTO detected in CXXFLAGS. Overriding...");
+            cmake.cxxflag("-fno-lto");
+        }
     }
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
