@@ -10,6 +10,7 @@ on:
       - 'tests/**'
       - 'Cargo.toml'
       - 'opus/**/*'
+      - 'build.rs'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
@@ -20,6 +21,7 @@ on:
       - 'tests/**'
       - 'Cargo.toml'
       - 'opus/**/*'
+      - 'build.rs'
 jobs:
   check:
     strategy:
