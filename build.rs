@@ -86,9 +86,30 @@ fn set_cmake_define_if_present(config: &mut cmake::Config, name: &str) {
     }
 }
 
+//Disable LTO if someone tries to force it (e.g. Arch makepkg)
+//This is necessary because cmake crate doesn't pass env variables at configure step
+fn fix_build_env() {
+    for var in ["CFLAGS", "CXXFLAGS"] {
+        if let Ok(value) = std::env::var(var) {
+            if value.contains("-flto") {
+                let filtered: String = value
+                    .split_whitespace()
+                    .filter(|f| !f.starts_with("-flto"))
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                unsafe { std::env::set_var(var, filtered); }
+            }
+        }
+    }
+}
+
 #[cfg(feature = "bundled")]
 fn build() {
     const CURRENT_DIR: &str = "opus";
+
+
+    //TODO: make PR to cmake crate to work it around properly
+    fix_build_env();
 
     let mut cmake = cmake::Config::new(CURRENT_DIR);
     cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
@@ -125,20 +146,6 @@ fn build() {
     }
     if cfg!(feature = "fixed-point") {
         cmake.define("OPUS_FIXED_POINT", "ON");
-    }
-
-    //Disable LTO if someone tries to force it (e.g. Arch makepkg)
-    if let Ok(cflags) = std::env::var("CFLAGS") {
-        if cflags.contains("-flto") {
-            println!("cargo:warning=LTO detected in CFLAGS. Overriding...");
-            cmake.cflag("-fno-lto");
-        }
-    }
-    if let Ok(cflags) = std::env::var("CXXFLAGS") {
-        if cflags.contains("-flto") {
-            println!("cargo:warning=LTO detected in CXXFLAGS. Overriding...");
-            cmake.cxxflag("-fno-lto");
-        }
     }
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
