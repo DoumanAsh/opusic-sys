@@ -30,7 +30,7 @@ fn generate_lib() {
     let out = path::PathBuf::new().join("src").join("lib.rs");
 
     let bindings = bindgen::Builder::default().header("src/wrapper.h")
-                                              .raw_line(PREPEND_LIB)
+                                              .raw_line(PREPEND_LIB.trim_ascii())
                                               .parse_callbacks(Box::new(ParseCallbacks))
                                               .generate_comments(false)
                                               .layout_tests(false)
@@ -39,6 +39,7 @@ fn generate_lib() {
                                               .allowlist_function("[oO]pus.+")
                                               .allowlist_var("[oO].+")
                                               .use_core()
+                                              .rustfmt_configuration_file(Some("bindgen.rustfmt.toml".into()))
                                               .generate()
                                               .expect("Unable to generate bindings");
 
@@ -93,7 +94,7 @@ fn build() {
     //Disable LTO if someone tries to force it (e.g. Arch makepkg)
     //This is necessary because cmake crate doesn't pass env variables at configure step, so we will
     //adjust both configure variables and general build env (just in case)
-    fn fix_build_env(cmake: &mut cmake::Config) {
+    fn remove_lto_options(cmake: &mut cmake::Config) {
         for (var, cmake_var) in [("CFLAGS", "CMAKE_C_FLAGS"), ("CXXFLAGS", "CMAKE_CXX_FLAGS")] {
             if let Ok(value) = std::env::var(var) {
                 if value.contains("-flto") {
@@ -111,8 +112,80 @@ fn build() {
         }
     }
 
+    //Converts bool to cmake's "ON/OFF"
+    fn to_opt(val: bool) -> &'static str {
+        if val {
+            "ON"
+        } else {
+            "OFF"
+        }
+    }
+
+    fn configure_cpu_features(cmake: &mut cmake::Config) {
+        const DO_RUNTIME_DETECTION: bool = cfg!(not(feature = "no-runtime-feature-detection"));
+
+        let target_features = std::env::var("CARGO_CFG_TARGET_FEATURE").unwrap_or_else(|err| {
+            println!("cargo:warning=failed to get CARGO_CFG_TARGET_FEATURE: {err:?}. Assuming no features are guaranteed");
+            String::new()
+        });
+
+        match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
+            Ok("aarch64") | Ok("arm") => {
+                // TODO: feature detection on other arm flags?
+                // OPUS_ARM_PRESUME_DOTPROD, OPUS_ARM_PRESUME_EDSP, OPUS_ARM_PRESUME_MEDIA
+                let has_neon = target_features.split(',').any(|s| s.trim() == "neon");
+
+                cmake
+                    .define("OPUS_ARM_PRESUME_NEON", to_opt(has_neon))
+                    .define("OPUS_ARM_MAY_HAVE_NEON", to_opt(DO_RUNTIME_DETECTION));
+            }
+            Ok("x86_64") | Ok("x86") => {
+                let mut has_sse = false;
+                let mut has_sse2 = false;
+                let mut has_sse41 = false;
+                let mut has_avx2 = false;
+                let mut has_fma = false;
+
+                for feat in target_features.split(',').map(|s| s.trim()) {
+                    match feat {
+                        "sse" => has_sse = true,
+                        "sse2" => has_sse2 = true,
+                        "sse4.1" => has_sse41 = true,
+                        "avx2" => has_avx2 = true,
+                        "fma" => has_fma = true,
+                        _ => {}
+                    }
+                }
+
+                cmake
+                    .define("OPUS_X86_PRESUME_SSE", to_opt(has_sse))
+                    .define("OPUS_X86_PRESUME_SSE2", to_opt(has_sse2))
+                    .define("OPUS_X86_PRESUME_SSE4_1", to_opt(has_sse41))
+                    .define("OPUS_X86_PRESUME_AVX2", to_opt(has_avx2 && has_fma))
+                    .define("OPUS_X86_MAY_HAVE_SSE", to_opt(DO_RUNTIME_DETECTION))
+                    .define("OPUS_X86_MAY_HAVE_SSE2", to_opt(DO_RUNTIME_DETECTION))
+                    .define("OPUS_X86_MAY_HAVE_SSE4_1", to_opt(DO_RUNTIME_DETECTION))
+                    .define("OPUS_X86_MAY_HAVE_AVX2", to_opt(DO_RUNTIME_DETECTION));
+            }
+            Err(err) => {
+                println!("cargo:warning=failed to get CARGO_CFG_TARGET_ARCH: {err:?}. CPU feature configuration is left up to CMake");
+            }
+            _ => {}
+        }
+    }
+
     let mut cmake = cmake::Config::new(CURRENT_DIR);
-    fix_build_env(&mut cmake);
+    let rust_lto = std::env::var("CARGO_ENCODED_RUSTFLAGS").is_ok_and(|opt| opt.contains("linker-plugin-lto"));
+    if !rust_lto {
+        remove_lto_options(&mut cmake);
+    }
+
+    let opt_level = std::env::var("OPT_LEVEL");
+    let opt_level = opt_level.as_deref().unwrap_or_else(|err| {
+        println!("cargo:warning=OPT_LEVEL error: {err:?}, assuming release");
+        "3"
+    });
+
     cmake.define("OPUS_INSTALL_PKG_CONFIG_MODULE", "OFF")
          .define("OPUS_INSTALL_CMAKE_CONFIG_MODULE", "OFF")
          //Defining these variables disable GNUInstallDirs so in addition to /lib
@@ -123,31 +196,28 @@ fn build() {
          .define("CMAKE_INSTALL_OLDINCLUDEDIR", "include")
          .define("CMAKE_INSTALL_LIBDIR", "lib")
          .define("CMAKE_TRY_COMPILE_TARGET_TYPE", "STATIC_LIBRARY")
-         //Ensure opus's CMake never enables LTO
-         .define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", "off");
+         .define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", to_opt(rust_lto))
+         .define("CMAKE_BUILD_TYPE", match opt_level {
+             "s" | "z" => "MinSizeRel",
+             // Using release build even in debug to decrease the number of rebuilds
+             // Standard CMAKE_BUILD_TYPEs: "Release", "MinSizeRel", "RelWithDebInfo", "Debug"
+             "0" | "1" | "2" | "3" => "Release",
+             other => {
+                 println!("cargo:warning=unexpected OPT_LEVEL='{other}', assuming release");
+                 "Release"
+             }
+         });
 
     //Keep this up to date with Cargo.toml
-    if cfg!(feature = "dred") {
-        cmake.define("OPUS_DRED", "ON");
-    }
-    if cfg!(feature = "osce") {
-        cmake.define("OPUS_OSCE", "ON");
-    }
-    if cfg!(feature = "no-hardening") {
-        cmake.define("OPUS_HARDENING", "OFF");
-    }
-    if cfg!(feature = "no-stack-protector") {
-        cmake.define("OPUS_STACK_PROTECTOR", "OFF");
-    }
-    if cfg!(feature = "no-fortify-source") {
-        cmake.define("OPUS_FORTIFY_SOURCE", "OFF");
-    }
-    if cfg!(feature = "no-simd") {
-        cmake.define("OPUS_DISABLE_INTRINSICS", "ON");
-    }
-    if cfg!(feature = "fixed-point") {
-        cmake.define("OPUS_FIXED_POINT", "ON");
-    }
+    cmake.define("OPUS_DRED", to_opt(cfg!(feature = "dred")))
+         .define("OPUS_OSCE", to_opt(cfg!(feature = "osce")))
+         .define("OPUS_HARDENING", to_opt(cfg!(not(feature = "no-hardening"))))
+         .define("OPUS_STACK_PROTECTOR", to_opt(cfg!(not(feature = "no-stack-protector"))))
+         .define("OPUS_FORTIFY_SOURCE", to_opt(cfg!(not(feature = "no-fortify-source"))))
+         .define("OPUS_DISABLE_INTRINSICS", to_opt(cfg!(feature = "no-simd")))
+         .define("OPUS_FIXED_POINT", to_opt(cfg!(feature = "fixed-point")));
+
+    configure_cpu_features(&mut cmake);
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
