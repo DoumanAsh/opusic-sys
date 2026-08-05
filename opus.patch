@@ -1,5 +1,5 @@
 diff --git a/opus/CMakeLists.txt b/opus/CMakeLists.txt
-index fcf034b..c574533 100644
+index fcf034b..afef617 100644
 --- a/opus/CMakeLists.txt
 +++ b/opus/CMakeLists.txt
 @@ -281,9 +281,17 @@ endif()
@@ -22,3 +22,12 @@ index fcf034b..c574533 100644
    endif()
  endif()
  
+@@ -423,7 +431,7 @@ endif()
+ 
+ if (OPUS_OSCE)
+   add_sources_group(opus lpcnet ${osce_headers} ${osce_sources})
+-  target_compile_definitions(opus PRIVATE ENABLE_OSCE)
++  target_compile_definitions(opus PRIVATE ENABLE_OSCE ENABLE_OSCE_BWE)
+ endif()
+ 
+ if(NOT OPUS_DISABLE_INTRINSICS)
