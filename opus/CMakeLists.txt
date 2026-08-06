@@ -431,7 +431,7 @@ endif()
 
 if (OPUS_OSCE)
   add_sources_group(opus lpcnet ${osce_headers} ${osce_sources})
-  target_compile_definitions(opus PRIVATE ENABLE_OSCE)
+  target_compile_definitions(opus PRIVATE ENABLE_OSCE ENABLE_OSCE_BWE)
 endif()
 
 if(NOT OPUS_DISABLE_INTRINSICS)
