@@ -131,13 +131,11 @@ fn build() {
 
         match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
             Ok("aarch64") | Ok("arm") => {
-                // TODO: feature detection on other arm flags?
-                // OPUS_ARM_PRESUME_DOTPROD, OPUS_ARM_PRESUME_EDSP, OPUS_ARM_PRESUME_MEDIA
                 let has_neon = target_features.split(',').any(|s| s.trim() == "neon");
 
                 cmake
-                    .define("OPUS_ARM_PRESUME_NEON", to_opt(has_neon))
-                    .define("OPUS_ARM_MAY_HAVE_NEON", to_opt(DO_RUNTIME_DETECTION));
+                    .define("OPUS_PRESUME_NEON", to_opt(has_neon))
+                    .define("OPUS_MAY_HAVE_NEON", to_opt(DO_RUNTIME_DETECTION));
             }
             Ok("x86_64") | Ok("x86") => {
                 let mut has_sse = false;
