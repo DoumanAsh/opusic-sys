@@ -129,37 +129,35 @@ fn build() {
             String::new()
         });
 
-        let crt_static = target_features.split(',').any(|s| s.trim() == "crt-static");
-        if crt_static {
-            cmake.define("OPUS_STATIC_RUNTIME", to_opt(crt_static));
+        let mut has_neon = false;
+        let mut has_sse = false;
+        let mut has_sse2 = false;
+        let mut has_sse41 = false;
+        let mut has_avx2 = false;
+        let mut has_fma = false;
+
+        for feat in target_features.split(',').map(|s| s.trim()) {
+            match feat {
+                "sse" => has_sse = true,
+                "sse2" => has_sse2 = true,
+                "sse4.1" => has_sse41 = true,
+                "avx2" => has_avx2 = true,
+                "fma" => has_fma = true,
+                "neon" => has_neon = true,
+                "crt-static" => {
+                    cmake.define("OPUS_STATIC_RUNTIME", to_opt(true));
+                },
+                _ => continue,
+            }
         }
 
         match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
             Ok("aarch64") | Ok("arm") => {
-                let has_neon = target_features.split(',').any(|s| s.trim() == "neon");
-
                 cmake
                     .define("OPUS_PRESUME_NEON", to_opt(has_neon))
                     .define("OPUS_MAY_HAVE_NEON", to_opt(DO_RUNTIME_DETECTION));
             }
             Ok("x86_64") | Ok("x86") => {
-                let mut has_sse = false;
-                let mut has_sse2 = false;
-                let mut has_sse41 = false;
-                let mut has_avx2 = false;
-                let mut has_fma = false;
-
-                for feat in target_features.split(',').map(|s| s.trim()) {
-                    match feat {
-                        "sse" => has_sse = true,
-                        "sse2" => has_sse2 = true,
-                        "sse4.1" => has_sse41 = true,
-                        "avx2" => has_avx2 = true,
-                        "fma" => has_fma = true,
-                        _ => {}
-                    }
-                }
-
                 cmake
                     .define("OPUS_X86_PRESUME_SSE", to_opt(has_sse))
                     .define("OPUS_X86_PRESUME_SSE2", to_opt(has_sse2))
