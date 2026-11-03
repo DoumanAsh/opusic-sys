@@ -121,13 +121,18 @@ fn build() {
         }
     }
 
-    fn configure_cpu_features(cmake: &mut cmake::Config) {
+    fn configure_features(cmake: &mut cmake::Config) {
         const DO_RUNTIME_DETECTION: bool = cfg!(not(feature = "no-runtime-feature-detection"));
 
         let target_features = std::env::var("CARGO_CFG_TARGET_FEATURE").unwrap_or_else(|err| {
             println!("cargo:warning=failed to get CARGO_CFG_TARGET_FEATURE: {err:?}. Assuming no features are guaranteed");
             String::new()
         });
+
+        let crt_static = target_features.split(',').any(|s| s.trim() == "crt-static");
+        if crt_static {
+            cmake.define("OPUS_STATIC_RUNTIME", to_opt(crt_static));
+        }
 
         match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
             Ok("aarch64") | Ok("arm") => {
@@ -215,7 +220,7 @@ fn build() {
          .define("OPUS_DISABLE_INTRINSICS", to_opt(cfg!(feature = "no-simd")))
          .define("OPUS_FIXED_POINT", to_opt(cfg!(feature = "fixed-point")));
 
-    configure_cpu_features(&mut cmake);
+    configure_features(&mut cmake);
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
