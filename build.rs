@@ -121,7 +121,7 @@ fn build() {
         }
     }
 
-    fn configure_cpu_features(cmake: &mut cmake::Config) {
+    fn configure_features(cmake: &mut cmake::Config) {
         const DO_RUNTIME_DETECTION: bool = cfg!(not(feature = "no-runtime-feature-detection"));
 
         let target_features = std::env::var("CARGO_CFG_TARGET_FEATURE").unwrap_or_else(|err| {
@@ -129,32 +129,35 @@ fn build() {
             String::new()
         });
 
+        let mut has_neon = false;
+        let mut has_sse = false;
+        let mut has_sse2 = false;
+        let mut has_sse41 = false;
+        let mut has_avx2 = false;
+        let mut has_fma = false;
+
+        for feat in target_features.split(',').map(|s| s.trim()) {
+            match feat {
+                "sse" => has_sse = true,
+                "sse2" => has_sse2 = true,
+                "sse4.1" => has_sse41 = true,
+                "avx2" => has_avx2 = true,
+                "fma" => has_fma = true,
+                "neon" => has_neon = true,
+                "crt-static" => {
+                    cmake.define("OPUS_STATIC_RUNTIME", to_opt(true));
+                },
+                _ => continue,
+            }
+        }
+
         match std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
             Ok("aarch64") | Ok("arm") => {
-                let has_neon = target_features.split(',').any(|s| s.trim() == "neon");
-
                 cmake
                     .define("OPUS_PRESUME_NEON", to_opt(has_neon))
                     .define("OPUS_MAY_HAVE_NEON", to_opt(DO_RUNTIME_DETECTION));
             }
             Ok("x86_64") | Ok("x86") => {
-                let mut has_sse = false;
-                let mut has_sse2 = false;
-                let mut has_sse41 = false;
-                let mut has_avx2 = false;
-                let mut has_fma = false;
-
-                for feat in target_features.split(',').map(|s| s.trim()) {
-                    match feat {
-                        "sse" => has_sse = true,
-                        "sse2" => has_sse2 = true,
-                        "sse4.1" => has_sse41 = true,
-                        "avx2" => has_avx2 = true,
-                        "fma" => has_fma = true,
-                        _ => {}
-                    }
-                }
-
                 cmake
                     .define("OPUS_X86_PRESUME_SSE", to_opt(has_sse))
                     .define("OPUS_X86_PRESUME_SSE2", to_opt(has_sse2))
@@ -215,7 +218,7 @@ fn build() {
          .define("OPUS_DISABLE_INTRINSICS", to_opt(cfg!(feature = "no-simd")))
          .define("OPUS_FIXED_POINT", to_opt(cfg!(feature = "fixed-point")));
 
-    configure_cpu_features(&mut cmake);
+    configure_features(&mut cmake);
 
     if let Some((toolchain_file, abi)) = get_android_vars() {
         cmake.define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
